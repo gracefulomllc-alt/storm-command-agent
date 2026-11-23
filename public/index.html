@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Storm Command — Good Knight Roofing</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<style>
+  :root {
+    --bg: #0b1220;
+    --panel: #111a2b;
+    --border: #2a3a52;
+    --text: #eaf2ff;
+    --muted: #9fb3cc;
+    --blue: #2563eb;
+    --high: #ef4444;
+    --mid: #f59e0b;
+    --low: #64748b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, #0f1830, #0b1220);
+  }
+  header h1 { font-size: 18px; margin: 0; }
+  header .sub { color: var(--muted); font-size: 12px; }
+  #status { font-size: 12px; color: var(--muted); }
+  main {
+    display: grid;
+    grid-template-columns: minmax(340px, 420px) 1fr;
+    height: calc(100vh - 60px);
+  }
+  #cards {
+    overflow-y: auto;
+    border-right: 1px solid var(--border);
+    padding: 12px;
+  }
+  #map { height: 100%; }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 12px;
+  }
+  .score-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .score-badge {
+    font-size: 20px;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 8px;
+    color: #fff;
+  }
+  .score-badge.high { background: var(--high); }
+  .score-badge.medium { background: var(--mid); }
+  .score-badge.low { background: var(--low); }
+  .tier-label { font-size: 13px; color: var(--muted); }
+  .heart-addr {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 6px 0;
+    line-height: 1.3;
+  }
+  .meta { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn {
+    background: var(--blue);
+    color: #fff;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+  }
+  .btn.secondary { background: #27344a; }
+  .source-tag {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--muted);
+  }
+  #empty { padding: 30px; color: var(--muted); text-align: center; }
+  .refresh-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>⚡ Storm Command</h1>
+    <div class="sub">Good Knight Roofing — Northern Colorado / Wyoming</div>
+  </div>
+  <div style="display:flex; align-items:center; gap:12px;">
+    <span id="status">Loading…</span>
+    <button class="refresh-btn" onclick="load(true)">Refresh</button>
+  </div>
+</header>
+<main>
+  <div id="cards"><div id="empty">Loading storms…</div></div>
+  <div id="map"></div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+const map = L.map('map', { renderer: L.canvas() }).setView([40.5, -104.9], 7);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  attribution: '&copy; OpenStreetMap &copy; CARTO',
+  subdomains: 'abcd',
+  maxZoom: 19,
+}).addTo(map);
+
+let markers = [];
+
+function sourceLabel(src) {
+  return {
+    'confirmed-spotter': '✅ Confirmed hail report',
+    'tracked-cell': '📍 NWS-tracked storm position',
+    'polygon-estimate': '🔵 Estimated storm center',
+  }[src] || 'Unknown';
+}
+
+function directionsUrl(pt) {
+  if (!pt) return '#';
+  return `https://www.google.com/maps/dir/?api=1&destination=${pt.lat},${pt.lon}`;
+}
+
+function render(storms) {
+  const cardsEl = document.getElementById('cards');
+  markers.forEach(m => map.removeLayer(m));
+  markers = [];
+
+  if (!storms.length) {
+    cardsEl.innerHTML = '<div id="empty">No active storms meeting the 1"+ hail threshold right now. Check back — the agent scans every 15 minutes.</div>';
+    return;
+  }
+
+  cardsEl.innerHTML = storms.map(s => `
+    <div class="card">
+      <div class="score-row">
+        <div class="score-badge ${s.claim.tier}">${s.claim.score}</div>
+        <div class="tier-label">${s.claim.tierLabel} · ${s.region === 'primary' ? 'Home turf' : 'Corridor'}</div>
+      </div>
+      <div class="heart-addr">🎯 ${s.startAddress}</div>
+      <div class="source-tag">${sourceLabel(s.targetSource)}</div>
+      <div class="meta">${s.counties}${s.size ? ` · ${s.size}" hail` : ''}${s.windMph ? ` · ${s.windMph} mph wind` : ''} · top factor: ${s.claim.topFactor}</div>
+      <div class="btn-row">
+        <a class="btn" href="${directionsUrl(s.targetPoint)}" target="_blank">Directions</a>
+        <button class="btn secondary" onclick="copyAddr('${s.startAddress.replace(/'/g, "\\'")}')">Copy Address</button>
+      </div>
+    </div>
+  `).join('');
+
+  storms.forEach(s => {
+    if (!s.targetPoint) return;
+    const color = s.claim.tier === 'high' ? '#ef4444' : s.claim.tier === 'medium' ? '#f59e0b' : '#64748b';
+    const marker = L.circleMarker([s.targetPoint.lat, s.targetPoint.lon], {
+      radius: 9, color, fillColor: color, fillOpacity: 0.85, weight: 2,
+    }).addTo(map).bindPopup(`<b>${s.claim.score}/100</b><br>${s.startAddress}`);
+    markers.push(marker);
+  });
+}
+
+function copyAddr(addr) {
+  navigator.clipboard?.writeText(addr);
+}
+
+async function load(forceRefresh) {
+  const statusEl = document.getElementById('status');
+  statusEl.textContent = 'Scanning…';
+  try {
+    const url = forceRefresh ? '/api/storms?refresh=1' : '/api/storms';
+    const res = await fetch(url);
+    const data = await res.json();
+    render(data.storms || []);
+    const counts = data.counts || {};
+    statusEl.textContent = `Updated ${new Date(data.scannedAt).toLocaleTimeString()} · CO:${counts.CO ?? '?'} WY:${counts.WY ?? '?'} active`;
+  } catch (err) {
+    statusEl.textContent = `Error: ${err.message}`;
+  }
+}
+
+load(false);
+setInterval(() => load(false), 5 * 60 * 1000); // soft refresh every 5 min while a tab is open
+</script>
+</body>
+</html>

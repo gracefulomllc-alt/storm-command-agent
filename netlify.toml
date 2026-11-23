@@ -1,0 +1,10 @@
+[build]
+  publish = "public"
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+
+# scan-storms.mts declares its own cron schedule via `export const config`.
+# Scheduled functions only fire on published (production) deploys, not
+# deploy previews — use "Run now" in the Netlify UI to test manually.

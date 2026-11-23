@@ -1,0 +1,11 @@
+{
+  "name": "storm-command-agent",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Good Knight Roofing - Storm Command autonomous agent. Scans CO/WY hail storms on a schedule, ranks them by claim probability, resolves an exact dispatch address, and emails the sales team.",
+  "private": true,
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0",
+    "nodemailer": "^6.9.16"
+  }
+}
