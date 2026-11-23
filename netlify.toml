@@ -8,3 +8,9 @@
 # scan-storms.mts declares its own cron schedule via `export const config`.
 # Scheduled functions only fire on published (production) deploys, not
 # deploy previews — use "Run now" in the Netlify UI to test manually.
+
+[template]
+[template.environment]
+  GMAIL_USER = "Gmail address to send dispatch alerts FROM, e.g. you@gmail.com"
+  GMAIL_APP_PASSWORD = "16-character Gmail App Password — generate at myaccount.google.com/apppasswords (needs 2-Step Verification on first)"
+  ALERT_TO_EMAIL = "Email address that receives alerts (optional — defaults to GMAIL_USER if left blank)"
