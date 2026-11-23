@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Manager Desk — Good Knight Roofing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Zilla+Slab:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:light;
+  --bg:#EDF0F4; --surface:#FFFFFF; --surface-2:#E4E9EF; --line:#CBD3DD;
+  --ink:#141A21; --dim:#56626F; --brass:#8A6C09; --brass-fill:#C9A227; --on-brass:#17140A;
+  --ok:#2A7750; --warn:#B03F27;
+  --display:'Zilla Slab',Georgia,'Times New Roman',serif;
+  --body:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    color-scheme:dark;
+    --bg:#10151A; --surface:#1A2128; --surface-2:#232C35; --line:#2F3A46;
+    --ink:#E8ECF0; --dim:#9AA6B2; --brass:#D6B031; --brass-fill:#C9A227; --on-brass:#17140A;
+    --ok:#5DB088; --warn:#E27A62;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.55;padding-inline:16px;padding-block:0 56px}
+h1,h2,h3,h4{font-family:var(--display);font-weight:600;margin:0;text-wrap:balance}
+.wrap{max-width:920px;margin-inline:auto}
+header.top{padding-block:20px 12px;display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+header.top h1{font-size:26px;line-height:1.1}
+header.top .links{display:flex;gap:14px;font-size:13px}
+header.top a{color:var(--brass);text-decoration:none;letter-spacing:.02em}
+header.top a:hover{text-decoration:underline}
+nav.tabs{position:sticky;top:0;z-index:5;background:var(--bg);display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid var(--line);margin-inline:-16px;padding-inline:16px;scrollbar-width:thin}
+nav.tabs button{flex:none;background:none;border:none;border-bottom:3px solid transparent;color:var(--dim);font:inherit;font-weight:500;padding:12px 12px 9px;cursor:pointer;min-height:44px}
+nav.tabs button:hover{color:var(--ink)}
+nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--brass-fill)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid var(--brass-fill);outline-offset:2px}
+section.tab{display:none;padding-block:20px}
+section.tab.on{display:block}
+.pagehead{margin-bottom:16px}
+.pagehead h2{font-size:22px}
+.sub{color:var(--dim);margin:4px 0 0;max-width:62ch}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:18px;margin-bottom:16px}
+.panel>h3{font-size:17px;margin-bottom:4px}
+.note{color:var(--dim);font-size:13px;margin:0 0 12px;max-width:66ch}
+.foot{color:var(--dim);font-size:12px;margin-top:10px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:16px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:14px 16px;min-width:0}
+.stat .k{color:var(--dim);font-size:12px}
+.stat .v{font-family:var(--display);font-size:26px;font-weight:600;line-height:1.15;font-variant-numeric:tabular-nums}
+.stat .d{font-size:12px;color:var(--dim);margin-top:2px}
+.track{height:8px;background:var(--surface-2);border-radius:4px;position:relative;margin-top:10px}
+.track i{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:var(--brass-fill)}
+.track b{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink)}
+.good{color:var(--ok)} .bad{color:var(--warn)}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:14px}
+.field{min-width:0}
+.field label{display:block;font-size:12px;color:var(--dim);margin-bottom:4px}
+input[type=text],input[type=number],input[type=date],select,textarea{width:100%;background:var(--surface-2);color:var(--ink);border:1px solid var(--line);border-radius:3px;padding:10px;font:inherit;font-size:16px;min-height:44px}
+.btn{background:var(--brass-fill);color:var(--on-brass);border:1px solid transparent;border-radius:3px;padding:10px 16px;font:inherit;font-weight:600;font-size:14px;cursor:pointer;min-height:44px}
+.btn:hover{filter:brightness(1.07)}
+.btn.ghost{background:none;color:var(--ink);border-color:var(--line)}
+.btn.ghost:hover{border-color:var(--brass-fill);color:var(--brass)}
+.btn.small{min-height:36px;padding:6px 12px;font-size:13px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+th{text-align:left;font-weight:500;color:var(--dim);font-size:12px;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:9px 10px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:none}
+td.num,th.num{text-align:right}
+.empty{color:var(--dim);padding:14px 0}
+details.group{border:1px solid var(--line);border-radius:4px;background:var(--surface);margin-bottom:10px}
+details.group>summary{list-style:none;cursor:pointer;padding:14px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;min-height:48px}
+details.group>summary::-webkit-details-marker{display:none}
+.g-title{font-family:var(--display);font-weight:600;font-size:17px;flex:1 1 140px}
+.g-count{font-size:13px;color:var(--dim);font-variant-numeric:tabular-nums}
+.bar{width:90px;height:6px;background:var(--surface-2);border-radius:3px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ok)}
+.items{padding:0 16px 14px}
+.item{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line)}
+.item input{flex:none;width:22px;height:22px;margin-top:1px;accent-color:var(--brass-fill)}
+.item label{flex:1;cursor:pointer;min-width:0}
+.item.done label{color:var(--dim);text-decoration:line-through}
+.tag{font-size:11px;color:var(--brass);border:1px solid var(--brass);border-radius:10px;padding:1px 8px;margin-left:8px;white-space:nowrap}
+.task{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line)}
+.task:first-child{border-top:none}
+.task input[type=checkbox]{flex:none;width:22px;height:22px;accent-color:var(--brass-fill)}
+.task span{flex:1;min-width:0;overflow-wrap:anywhere}
+.task.done span{color:var(--dim);text-decoration:line-through}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:4px;font-size:14px;max-width:90vw;z-index:20}
+[hidden]{display:none!important}
+@media (max-width:560px){ header.top h1{font-size:23px} .stat .v{font-size:23px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Manager Desk</h1>
+    <div class="links"><a href="/">&larr; Storm Command</a><a href="/rep.html">Rep check-in</a></div>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Sections">
+    <button role="tab" data-tab="today" aria-selected="true">Today</button>
+    <button role="tab" data-tab="weekly" aria-selected="false">Weekly</button>
+    <button role="tab" data-tab="checklist" aria-selected="false">Checklist</button>
+    <button role="tab" data-tab="bonus" aria-selected="false">Bonus</button>
+    <button role="tab" data-tab="reference" aria-selected="false">Reference</button>
+    <button role="tab" data-tab="setup" aria-selected="false">Setup</button>
+  </nav>
+
+  <section class="tab on" id="tab-today">
+    <div class="pagehead"><h2>Today</h2><p class="sub" id="todayDate"></p></div>
+    <div class="stats" id="pace"></div>
+    <div class="stats" id="todayStats"></div>
+    <div class="panel">
+      <h3>Daily team pulse</h3>
+      <p class="note">One entry a day. Copy the team totals from SalesRabbit and AccuLynx. This is the pace check, not a second record of every knock.</p>
+      <div class="fields">
+        <div class="field"><label for="pDoors">Doors knocked (team)</label><input type="number" inputmode="numeric" min="0" id="pDoors"></div>
+        <div class="field"><label for="pAppts">Appointments set (team)</label><input type="number" inputmode="numeric" min="0" id="pAppts"></div>
+        <div class="field"><label for="pPaid">Cash collected today ($)</label><input type="number" inputmode="decimal" min="0" id="pPaid"></div>
+      </div>
+      <button class="btn" id="savePulse">Save today</button>
+    </div>
+    <div class="panel">
+      <h3>This week so far</h3>
+      <div class="tablewrap"><table><thead><tr><th>Day</th><th class="num">Doors</th><th class="num">Appts set</th><th class="num">Collected</th></tr></thead><tbody id="weekSoFar"></tbody></table></div>
+    </div>
+  </section>
+
+  <section class="tab" id="tab-weekly">
+    <div class="pagehead"><h2>Weekly review</h2><p class="sub">Totals for the week, plus the head count in each AccuLynx stage. Enter it once, on the same day each week.</p></div>
+    <div class="stats" id="weeklyStats"></div>
+    <div class="panel">
+      <h3>This week's numbers</h3>
+      <div class="fields">
+        <div class="field"><label for="wStart">Week starting (Monday)</label><input type="date" id="wStart"></div>
+        <div class="field"><label for="wDoors">Doors</label><input type="number" inputmode="numeric" min="0" id="wDoors"></div>
+        <div class="field"><label for="wSet">Appointments set</label><input type="number" inputmode="numeric" min="0" id="wSet"></div>
+        <div class="field"><label for="wSat">Appointments sat</label><input type="number" inputmode="numeric" min="0" id="wSat"></div>
+        <div class="field"><label for="wSold">Sold this week ($)</label><input type="number" inputmode="decimal" min="0" id="wSold"></div>
+        <div class="field"><label for="wSoldC">Sold from canvassing ($, part of sold)</label><input type="number" inputmode="decimal" min="0" id="wSoldC"></div>
+        <div class="field"><label for="wPaid">Cash collected ($)</label><input type="number" inputmode="decimal" min="0" id="wPaid"></div>
+        <div class="field"><label for="wDone">Jobs completed</label><input type="number" inputmode="numeric" min="0" id="wDone"></div>
+        <div class="field"><label for="wBack">Callbacks or issues</label><input type="number" inputmode="numeric" min="0" id="wBack"></div>
+        <div class="field"><label for="wDenied">Claims denied this week</label><input type="number" inputmode="numeric" min="0" id="wDenied"></div>
+        <div class="field"><label for="wCancN">Jobs cancelled or rescinded</label><input type="number" inputmode="numeric" min="0" id="wCancN"></div>
+        <div class="field"><label for="wCancAmt">Value cancelled ($)</label><input type="number" inputmode="decimal" min="0" id="wCancAmt"></div>
+      </div>
+      <p class="note">Jobs in each AccuLynx stage right now:</p>
+      <div class="fields">
+        <div class="field"><label for="sClaim">Signed, insurance claim still pending</label><input type="number" inputmode="numeric" min="0" id="sClaim"></div>
+        <div class="field"><label for="sSold">Sold, not scheduled</label><input type="number" inputmode="numeric" min="0" id="sSold"></div>
+        <div class="field"><label for="sSched">Scheduled</label><input type="number" inputmode="numeric" min="0" id="sSched"></div>
+        <div class="field"><label for="sInst">Installed, not invoiced</label><input type="number" inputmode="numeric" min="0" id="sInst"></div>
+        <div class="field"><label for="sInv">Invoiced, not paid</label><input type="number" inputmode="numeric" min="0" id="sInv"></div>
+      </div>
+      <div class="row">
+        <button class="btn" id="saveWeekly">Save week</button>
+        <button class="btn ghost" id="fillWeekly">Fill doors, appts and cash from daily pulses</button>
+      </div>
+    </div>
+    <div class="panel">
+      <h3>History</h3>
+      <div class="tablewrap"><table><thead><tr><th>Week of</th><th class="num">Doors</th><th class="num">Set</th><th class="num">Sat</th><th class="num">Sold</th><th class="num">Canvass</th><th class="num">Cancelled</th><th class="num">Collected</th><th class="num">Set&rarr;Sat</th><th class="num">Callbacks</th></tr></thead><tbody id="weekHist"></tbody></table></div>
+    </div>
+  </section>
+
+  <section class="tab" id="tab-checklist">
+    <div class="pagehead"><h2>Activity checklist</h2><p class="sub">What has to happen for the number to happen. Items tagged <span class="tag" style="margin:0">Your pay</span> protect cash collected, which is what your commission follows.</p></div>
+    <div id="groups"></div>
+    <p class="foot" id="overall"></p>
+    <div class="panel" style="margin-top:16px">
+      <h3>My tasks</h3>
+      <p class="note">Back-end work and follow-ups that don't belong in AccuLynx or SalesRabbit.</p>
+      <div id="taskList"></div>
+      <div class="row" style="margin-top:12px">
+        <input type="text" id="newTask" placeholder="Add a task" style="flex:1 1 220px;width:auto">
+        <button class="btn" id="addTask">Add</button>
+      </div>
+      <button class="btn ghost small" id="stormTasks" style="margin-top:12px">Add storm-response tasks</button>
+    </div>
+  </section>
+
+  <section class="tab" id="tab-bonus">
+    <div class="pagehead"><h2>Bonus ledger</h2><p class="sub">Appointment-set bonus for the pay period. Enter each rep's count from the SalesRabbit report.</p></div>
+    <div class="panel">
+      <h3>Pay period</h3>
+      <div class="fields">
+        <div class="field"><label for="bStart">Period start</label><input type="date" id="bStart"></div>
+        <div class="field"><label for="bEnd">Period end</label><input type="date" id="bEnd"></div>
+        <div class="field"><label for="bRate">Bonus per appointment ($)</label><input type="number" inputmode="decimal" min="0" id="bRate"></div>
+      </div>
+      <div class="fields" id="bonusReps"></div>
+      <button class="btn" id="saveBonus">Save period</button>
+    </div>
+    <div class="panel">
+      <h3>Saved periods</h3>
+      <div id="bonusOut"></div>
+    </div>
+  </section>
+
+  <section class="tab" id="tab-reference">
+    <div class="pagehead"><h2>Drone reference</h2><p class="sub">Notes for the inspection-drone decision. Prices change, so confirm before buying.</p></div>
+    <div class="panel">
+      <h3>Picks by tier</h3>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Tier</th><th>Model</th><th>Best for</th></tr></thead>
+        <tbody>
+          <tr><td>Entry</td><td>DJI Mini 4 Pro</td><td>Visual residential inspections and learning to fly</td></tr>
+          <tr><td>Working unit</td><td>Autel EVO II Pro V3</td><td>Daily claim documentation, 1-inch sensor, no geofence lockouts near airports</td></tr>
+          <tr><td>Thermal</td><td>Autel EVO II Dual 640T V3</td><td>Moisture detection and disputed claims</td></tr>
+        </tbody>
+      </table></div>
+      <p class="foot">DJI has had shifting US commercial-use compliance questions through 2026. Check current status before standardizing on it.</p>
+    </div>
+    <div class="panel">
+      <h3>Buy or outsource</h3>
+      <div class="tablewrap"><table>
+        <thead><tr><th></th><th>Buy</th><th>Outsource</th></tr></thead>
+        <tbody>
+          <tr><td>Upfront</td><td>$1,500 to $15,000+</td><td>None</td></tr>
+          <tr><td>Per inspection</td><td>Near zero after purchase</td><td>$150 to $400 residential</td></tr>
+          <tr><td>Needs</td><td>FAA Part 107 pilot on staff</td><td>Vendor handles licensing</td></tr>
+          <tr><td>Fits when</td><td>10+ inspections a month</td><td>Low or uneven volume</td></tr>
+        </tbody>
+      </table></div>
+      <p class="foot">Put one or two certified operators on the production side, flying properties canvassers have already set. Reps stay on doors.</p>
+    </div>
+  </section>
+
+  <section class="tab" id="tab-setup">
+    <div class="pagehead"><h2>Setup</h2><p class="sub">Set these once and adjust as real results come in. Every target in the app comes from here.</p></div>
+    <div class="panel">
+      <h3>Goals and assumptions</h3>
+      <div class="fields" id="assumpFields"></div>
+      <button class="btn" id="saveCfg">Save assumptions</button>
+      <p class="foot">The rates are starting guesses, not Good Knight history. Replace them with real AccuLynx and SalesRabbit numbers after the first 30 days.</p>
+    </div>
+    <div class="panel">
+      <h3>Seasonality</h3>
+      <p class="note">Share of the year's sales you expect in each month. The pace line follows this curve, so a quiet winter doesn't read as falling behind. The starting curve is a guess that favors spring and summer hail season. Replace it with Good Knight's own monthly history from AccuLynx.</p>
+      <div class="fields" id="seasonFields"></div>
+      <div class="row"><button class="btn" id="saveSeason">Save curve</button><span class="note" id="seasonSum" style="margin:0"></span></div>
+    </div>
+    <div class="panel">
+      <h3>Canvasser roster</h3>
+      <p class="note">Used for the bonus ledger. Reps added in Storm Command appear in the ledger automatically.</p>
+      <div id="rosterList"></div>
+      <div class="row" style="margin-top:12px">
+        <input type="text" id="newRep" placeholder="Rep name" style="flex:1 1 220px;width:auto">
+        <button class="btn" id="addRep">Add rep</button>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var esc = function(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); };
+  var f0 = function(n){ return Math.round(n||0).toLocaleString('en-US'); };
+  var f1 = function(n){ return (Math.round((n||0)*10)/10).toLocaleString('en-US'); };
+  var money = function(n){ return '$'+f0(n); };
+  function pad(n){ return (n<10?'0':'')+n; }
+  function ymd(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+  function parseYmd(s){ var p=String(s).split('-'); return new Date(+p[0], (+p[1]||1)-1, +p[2]||1); }
+  function mondayOf(d){ var x=new Date(d.getFullYear(), d.getMonth(), d.getDate()); var wd=x.getDay(); x.setDate(x.getDate()+(wd===0?-6:1-wd)); return x; }
+  function num(id){ var v=$(id).value; return v===''?0:Math.max(Number(v)||0,0); }
+  function setVal(id, v){ var el=$(id); if(el && document.activeElement!==el) el.value = (v===undefined||v===null)?'':v; }
+  var toastTimer;
+  function toast(msg){ var t=$('toast'); t.textContent=msg; t.hidden=false; clearTimeout(toastTimer); toastTimer=setTimeout(function(){ t.hidden=true; }, 4000); }
+
+  var DEFAULTS = {goal:5000000, canvassGoal:1000000, avgJob:15000, sit:60, close:40, doors:35, reps:10, weeks:40, lag:6, bonus:20, start:'2027-01-04', roster:[], season:[4,4,6,8,13,15,15,12,8,6,5,4]};
+  var FIELDS = [
+    ['goal','Company goal ($/yr)'],['canvassGoal','Canvasser goal ($/yr)'],['avgJob','Average job ($)'],
+    ['sit','Set to sat (%)'],['close','Sat to sold (%)'],['doors','Doors per appointment set'],
+    ['reps','Active canvassers'],['weeks','Selling weeks per year'],['lag','Sold to paid (weeks)'],['bonus','Bonus per appt set ($)']
+  ];
+  var S = { cfg:null, checks:{}, tasks:[], periods:[], pulse:{}, weekly:{}, apiReps:[] };
+  var dirty = {today:false, weekly:false, setup:false, bonus:false};
+  var inflight = 0;
+  function mkCfg(d){ var c = Object.assign({}, DEFAULTS, d||{}); c.roster = (c.roster||[]).slice(); c.season = (c.season&&c.season.length===12 ? c.season : DEFAULTS.season).slice(); return c; }
+  S.cfg = mkCfg();
+
+  /* ---------- persistence (Netlify DB via /api/desk) ---------- */
+  function pathFor(kind, key){ return (kind==='pulse'||kind==='weekly') ? kind+'/'+key : 'gk/'+kind; }
+  async function persist(kind, key, data){
+    inflight++;
+    try{
+      var r = await fetch('/api/desk', {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({path:pathFor(kind,key), data:data})});
+      if(!r.ok) throw new Error('save failed');
+      return true;
+    }catch(e){ toast('That did not save. Check your connection and try again.'); return false; }
+    finally{ inflight--; }
+  }
+  function saveCfg(){ return persist('cfg', null, S.cfg); }
+  function saveChecks(){ return persist('checks', null, {map:S.checks}); }
+  function saveTasks(){ return persist('tasks', null, {list:S.tasks}); }
+  function savePeriods(){ return persist('bonus', null, {periods:S.periods}); }
+
+  async function getDoc(path){ var r = await fetch('/api/desk?path='+encodeURIComponent(path)); if(!r.ok) throw new Error('load'); return (await r.json()).data; }
+  async function getPrefix(prefix){
+    var r = await fetch('/api/desk?prefix='+encodeURIComponent(prefix)); if(!r.ok) throw new Error('load');
+    var m = {}; (await r.json()).docs.forEach(function(d){ m[d.path.split('/')[1]] = d.data; }); return m;
+  }
+  async function loadAll(){
+    if(inflight>0) return;
+    try{
+      var res = await Promise.all([getDoc('gk/cfg'), getDoc('gk/checks'), getDoc('gk/tasks'), getDoc('gk/bonus'), getPrefix('pulse/'), getPrefix('weekly/'),
+        fetch('/api/reps').then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; })]);
+      if(inflight>0) return;
+      if(res[0]) S.cfg = mkCfg(res[0]);
+      if(res[1]) S.checks = res[1].map||{};
+      if(res[2]) S.tasks = res[2].list||[];
+      if(res[3]) S.periods = res[3].periods||[];
+      S.pulse = res[4]; S.weekly = res[5];
+      S.apiReps = (res[6]||[]).map(function(r){ return r.name; });
+      renderAll();
+    }catch(e){ toast('Could not load saved data. Reload the page.'); }
+  }
+
+  /* ---------- the math ---------- */
+  function calc(){
+    var c = S.cfg, g = function(k){ return Math.max(Number(c[k])||0, 0); };
+    var avg = Math.max(g('avgJob'),1), weeks = Math.max(g('weeks'),1), reps = Math.max(g('reps'),1);
+    var conv = Math.max((g('sit')/100)*(g('close')/100), 0.0001);
+    var jobsYear = g('goal')/avg, canvJobs = g('canvassGoal')/avg, canvAppts = canvJobs/conv;
+    return {
+      jobsYear:jobsYear, jobsWeek:jobsYear/weeks, canvJobsWeek:canvJobs/weeks,
+      otherJobsWeek:Math.max(jobsYear-canvJobs,0)/weeks,
+      canvApptsWeek:canvAppts/weeks, teamApptsDay:canvAppts/weeks/5,
+      teamDoorsDay:canvAppts*g('doors')/weeks/5,
+      apptsRepDay:canvAppts/(weeks*5)/reps, doorsRepDay:canvAppts*g('doors')/(weeks*5)/reps,
+      canvShare: g('goal')>0 ? g('canvassGoal')/g('goal')*100 : 0
+    };
+  }
+  function sumWeekly(field){ return Object.keys(S.weekly).reduce(function(a,k){ return a+(Number(S.weekly[k][field])||0); },0); }
+  function seasonW(){
+    var a = (S.cfg.season||[]).map(Number); if(a.length!==12 || a.some(isNaN)) a = DEFAULTS.season.slice();
+    var t = a.reduce(function(x,y){ return x+y; },0) || 1; return a.map(function(x){ return x/t; });
+  }
+  function rawShare(d, y){
+    if(d.getFullYear()>y) return 1; if(d.getFullYear()<y) return 0;
+    var w=seasonW(), m=d.getMonth(), c=0; for(var i=0;i<m;i++) c+=w[i];
+    return c + w[m]*d.getDate()/new Date(y,m+1,0).getDate();
+  }
+  function cumShare(d){
+    var st=parseYmd(S.cfg.start); if(d<=st) return 0;
+    var y=st.getFullYear(), a=rawShare(st,y), b=rawShare(d,y);
+    return Math.min(Math.max((b-a)/((1-a)||1),0),1);
+  }
+  function pace(){
+    var c=S.cfg, start=parseYmd(c.start), now=new Date();
+    var sold=sumWeekly('sold')-sumWeekly('cancAmt'), paid=sumWeekly('paid');
+    var daysToStart = Math.ceil((start-now)/86400000);
+    if(daysToStart>0) return {pre:true, daysToStart:daysToStart, sold:sold, paid:paid, expSold:0, expPaid:0, share:0};
+    var el = Math.min((now-start)/604800000, 52), lagMs=(Number(c.lag)||0)*604800000;
+    return {pre:false, sold:sold, paid:paid, el:el, share:cumShare(now),
+      expSold:c.goal*cumShare(now), expPaid:c.goal*cumShare(new Date(now.getTime()-lagMs))};
+  }
+  function weekEntries(){ return Object.keys(S.weekly).sort().reverse().map(function(k){ return {week:k, d:S.weekly[k]}; }); }
+
+  /* ---------- checklist data ---------- */
+  var GROUPS = [
+    {id:'daily', title:'Every day', open:true, reset:'Reset for a new day', items:[
+      ['d1','Run the 15-minute huddle: turf, target, one skill'],
+      ['d2','Compare yesterday\'s SalesRabbit numbers to the daily target and message anyone under about 70% of pace'],
+      ['d3','Midday check-in with reps in the field'],
+      ['d4','Confirm every set appointment has an assigned closer and a confirmed time in AccuLynx'],
+      ['d5','Scan AccuLynx for newly signed jobs: contract, deposit, materials ordered',1],
+      ['d6','Log the daily pulse in the Today tab']
+    ]},
+    {id:'weekly', title:'Every week', open:true, reset:'Reset for a new week', items:[
+      ['w1','Monday pipeline review with production: signed-not-scheduled, scheduled-not-started, built-not-invoiced, invoiced-not-paid',1],
+      ['w2','Chase aging invoices with the office and escalate anything past your threshold',1],
+      ['w3','1:1 with every rep and fix one thing each'],
+      ['w4','Review set-to-sat and sat-to-sold by rep and by closer'],
+      ['w5','Audit appointment quality before bonuses run: decision-maker present, confirmed time'],
+      ['w6','Review crew and sub performance: on time, callbacks',1],
+      ['w7','Enter the weekly review and compare paid-to-date with the pace line'],
+      ['w8','Hiring pipeline: interviews booked for next week'],
+      ['w9','Review jobs with claims pending or denied and watch the 72-hour cancellation windows',1]
+    ]},
+    {id:'monthly', title:'Every month', open:false, items:[
+      ['m1','Re-forecast paid, signed and pipeline against the annual goal and adjust targets',1],
+      ['m2','Retention review: who left, who is about to'],
+      ['m3','Compare canvass, referral and repeat sources on close rate and job size'],
+      ['m4','Retrain on the weakest funnel step: script, objections or inspection set'],
+      ['m5','Re-cut turf where saturation is high'],
+      ['m6','Review average job value and margin with the owner']
+    ]},
+    {id:'setup', title:'Before the season starts', open:true, items:[
+      ['s1','Agree in writing with the owner on what counts as an appointment set'],
+      ['s2','Write 30, 60 and 90-day expectations for new reps'],
+      ['s3','Finalize week-one training: script, objections, role-play, AccuLynx entry standards'],
+      ['s4','Confirm production capacity matches the target and a vetted sub bench exists',1],
+      ['s5','Confirm who owns production scheduling and who owns collections',1],
+      ['s6','Build the non-canvass lead plan: referrals, repeat customers, local partners'],
+      ['s7','Storm-response plan: pre-assigned team, drone operator, permit rules, same-day mobilization'],
+      ['s8','Agree with the owner on your reporting cadence and what you are accountable for'],
+      ['s9','Get the owner to define in writing your scope, including who produces the sales beyond the canvasser goal'],
+      ['s10','Pull two to three years of AccuLynx history (close rate by source, average job, days to paid, cancellations, sales by month) and replace the assumptions'],
+      ['s11','Have the company\'s attorney confirm current Colorado roofing contract and deductible rules, then build them into week-one training'],
+      ['s12','Spend a few days with production and an estimator, and read one insurance claim file start to finish']
+    ]}
+  ];
+  var STORM = [
+    'Confirm the hail swath and heart-of-storm addresses',
+    'Assign territories by priority before the team mobilizes',
+    'Brief the team the same day and saturate the assigned zip within 48 to 72 hours',
+    'Send the drone operator to the first signed properties within 24 hours',
+    'Check solicitation and permit rules for the storm-hit city',
+    'Fast-track signed jobs to production',
+    'Run a daily pipeline review in AccuLynx during the surge'
+  ];
+
+  /* ---------- rendering ---------- */
+  function statCard(k, v, d, cls, track){
+    return '<div class="stat"><div class="k">'+esc(k)+'</div><div class="v '+(cls||'')+'">'+v+'</div><div class="d">'+d+'</div>'+(track||'')+'</div>';
+  }
+  function trackHtml(val, exp, max){
+    var w = max>0 ? Math.min(val/max*100,100) : 0, m = max>0 ? Math.min(exp/max*100,100) : 0;
+    return '<div class="track" role="img" aria-label="Actual against target"><i style="width:'+w+'%"></i>'+(exp>0?'<b style="left:'+m+'%"></b>':'')+'</div>';
+  }
+  function readiness(){
+    var g = GROUPS.filter(function(x){ return x.id==='setup'; })[0];
+    var done = g.items.filter(function(i){ return S.checks[i[0]]; }).length;
+    return {done:done, total:g.items.length};
+  }
+  function renderPace(){
+    var p = pace(), c = S.cfg, goal = Number(c.goal)||0, html;
+    if(p.pre){
+      var r = readiness();
+      html = statCard('Season opens', p.daysToStart+' days', esc(parseYmd(c.start).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})))
+        + statCard('Pre-season readiness', r.done+' of '+r.total, 'setup items done', r.done===r.total?'good':'', trackHtml(r.done,0,r.total))
+        + statCard('Target at full pace', f1(calc().jobsWeek)+' jobs/wk', money(goal)+' a year');
+    } else {
+      var sGap = p.sold-p.expSold, pGap = p.paid-p.expPaid;
+      html = statCard('Sold to date, net', money(p.sold), (sGap>=0?'ahead of':'behind')+' pace by '+money(Math.abs(sGap)), sGap>=0?'good':'bad', trackHtml(p.sold,p.expSold,goal))
+        + statCard('Collected to date', money(p.paid), (pGap>=0?'ahead of':'behind')+' pace by '+money(Math.abs(pGap)), pGap>=0?'good':'bad', trackHtml(p.paid,p.expPaid,goal))
+        + statCard('Expected by now', Math.round(p.share*100)+'%', 'of the year\'s sales, on your seasonal curve');
+    }
+    $('pace').innerHTML = html;
+  }
+  function renderToday(){
+    var now = new Date(), key = ymd(now), t = calc(), p = S.pulse[key] || {doors:0, appts:0, paid:0};
+    $('todayDate').textContent = now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+    if(!dirty.today){ setVal('pDoors', S.pulse[key]?p.doors:''); setVal('pAppts', S.pulse[key]?p.appts:''); setVal('pPaid', S.pulse[key]?p.paid:''); }
+    var apptsOk = p.appts >= t.teamApptsDay;
+    $('todayStats').innerHTML =
+      statCard('Appointments set', f0(p.appts), 'target '+f1(t.teamApptsDay)+' a day for the team', S.pulse[key]?(apptsOk?'good':'bad'):'') +
+      statCard('Doors knocked', f0(p.doors), 'target '+f0(t.teamDoorsDay)+' a day for the team') +
+      statCard('Collected today', money(p.paid), 'cash received');
+    var mon = mondayOf(now), rows = '';
+    for(var i=0;i<7;i++){
+      var d = new Date(mon.getFullYear(), mon.getMonth(), mon.getDate()+i), e = S.pulse[ymd(d)];
+      rows += '<tr><td>'+d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})+'</td><td class="num">'+(e?f0(e.doors):'—')+'</td><td class="num">'+(e?f0(e.appts):'—')+'</td><td class="num">'+(e?money(e.paid):'—')+'</td></tr>';
+    }
+    $('weekSoFar').innerHTML = rows;
+  }
+  function weekSums(startKey){
+    var s = parseYmd(startKey), out = {doors:0, appts:0, paid:0, n:0};
+    for(var i=0;i<7;i++){ var e = S.pulse[ymd(new Date(s.getFullYear(), s.getMonth(), s.getDate()+i))]; if(e){ out.doors+=e.doors||0; out.appts+=e.appts||0; out.paid+=e.paid||0; out.n++; } }
+    return out;
+  }
+  function loadWeekForm(){
+    var wk = $('wStart').value, e = S.weekly[wk] || null, st = (e&&e.stages)||{};
+    setVal('wDoors', e?e.doors:''); setVal('wSet', e?e.set:''); setVal('wSat', e?e.sat:''); setVal('wSold', e?e.sold:''); setVal('wPaid', e?e.paid:'');
+    setVal('wDone', e?e.done:''); setVal('wBack', e?e.back:''); setVal('wSoldC', e?e.soldC:''); setVal('wDenied', e?e.denied:''); setVal('wCancN', e?e.cancN:''); setVal('wCancAmt', e?e.cancAmt:'');
+    setVal('sClaim', e?st.claim:''); setVal('sSold', e?st.sold:''); setVal('sSched', e?st.sched:''); setVal('sInst', e?st.inst:''); setVal('sInv', e?st.inv:'');
+  }
+  function renderWeekly(){
+    if(!$('wStart').value) $('wStart').value = ymd(mondayOf(new Date()));
+    if(!dirty.weekly) loadWeekForm();
+    var p = pace(), ents = weekEntries(), goal = Number(S.cfg.goal)||0, t = calc();
+    var last = ents[0] ? ents[0].d : null;
+    var conv = last && last.set>0 ? Math.round(last.sat/last.set*100)+'%' : '—';
+    var gross = sumWeekly('sold'), soldC = sumWeekly('soldC'), canc = sumWeekly('cancAmt'), cancN = sumWeekly('cancN');
+    $('weeklyStats').innerHTML =
+      statCard('Sold to date, net', money(p.sold), 'of '+money(goal)+' goal', '', trackHtml(p.sold, p.expSold, goal)) +
+      statCard('Collected to date', money(p.paid), 'of '+money(goal)+' goal', '', trackHtml(p.paid, p.expPaid, goal)) +
+      statCard('Canvass share of sold', gross>0?Math.round(soldC/gross*100)+'%':'—', 'your goal implies '+Math.round(t.canvShare)+'%') +
+      statCard('Cancelled to date', gross>0?Math.round(canc/gross*100)+'%':'—', f0(cancN)+' jobs, '+money(canc)+' of sold value', gross>0&&canc/gross>0.1?'bad':'') +
+      statCard('Set to sat, latest week', conv, last?('assumption '+S.cfg.sit+'%'):'no weeks saved yet');
+    $('weekHist').innerHTML = ents.length ? ents.map(function(x){
+      var d=x.d, cv = d.set>0 ? Math.round(d.sat/d.set*100)+'%' : '—';
+      return '<tr><td>'+esc(parseYmd(x.week).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}))+'</td><td class="num">'+f0(d.doors)+'</td><td class="num">'+f0(d.set)+'</td><td class="num">'+f0(d.sat)+'</td><td class="num">'+money(d.sold)+'</td><td class="num">'+money(d.soldC)+'</td><td class="num">'+money(d.cancAmt)+'</td><td class="num">'+money(d.paid)+'</td><td class="num">'+cv+'</td><td class="num">'+f0(d.back)+'</td></tr>';
+    }).join('') : '<tr><td colspan="10" class="empty">No weeks saved yet. Save the first one above.</td></tr>';
+  }
+  function renderChecklist(){
+    var fid = document.activeElement && document.activeElement.id, openState = {};
+    $('groups').querySelectorAll('details').forEach(function(d){ openState[d.dataset.g] = d.open; });
+    var total=0, done=0;
+    $('groups').innerHTML = GROUPS.map(function(g){
+      var d = g.items.filter(function(i){ return S.checks[i[0]]; }).length; total+=g.items.length; done+=d;
+      var isOpen = openState[g.id]!==undefined ? openState[g.id] : g.open;
+      var items = g.items.map(function(i){
+        return '<div class="item'+(S.checks[i[0]]?' done':'')+'"><input type="checkbox" id="c-'+i[0]+'" data-id="'+i[0]+'"'+(S.checks[i[0]]?' checked':'')+'><label for="c-'+i[0]+'">'+esc(i[1])+(i[2]?'<span class="tag">Your pay</span>':'')+'</label></div>';
+      }).join('');
+      var reset = g.reset ? '<button class="btn ghost small" data-reset="'+g.id+'" style="margin-top:10px">'+g.reset+'</button>' : '';
+      return '<details class="group" data-g="'+g.id+'"'+(isOpen?' open':'')+'><summary><span class="g-title">'+g.title+'</span><span class="g-count">'+d+' of '+g.items.length+'</span><span class="bar"><i style="width:'+(d/g.items.length*100)+'%"></i></span></summary><div class="items">'+items+reset+'</div></details>';
+    }).join('');
+    $('overall').textContent = done+' of '+total+' checklist items done.';
+    $('taskList').innerHTML = S.tasks.length ? S.tasks.map(function(t,i){
+      return '<div class="task'+(t.done?' done':'')+'"><input type="checkbox" id="t-'+i+'" data-t="'+i+'"'+(t.done?' checked':'')+' aria-label="Done"><span>'+esc(t.text)+'</span><button class="btn ghost small" data-del="'+i+'">Remove</button></div>';
+    }).join('') : '<div class="empty">No tasks yet.</div>';
+    if(fid && (fid.indexOf('c-')===0 || fid.indexOf('t-')===0) && $(fid)) $(fid).focus();
+  }
+  function allReps(){
+    var out = (S.cfg.roster||[]).slice();
+    S.apiReps.forEach(function(n){ if(out.indexOf(n)<0) out.push(n); });
+    return out;
+  }
+  var lastRoster = null;
+  function renderBonus(){
+    var reps = allReps(), rk = reps.join('|');
+    if(rk !== lastRoster){ lastRoster = rk; $('bonusReps').innerHTML = reps.length ? reps.map(function(r,i){
+      return '<div class="field"><label for="br-'+i+'">'+esc(r)+'</label><input type="number" inputmode="numeric" min="0" id="br-'+i+'" data-rep="'+esc(r)+'" class="brInput" placeholder="Appts set"></div>';
+    }).join('') : '<p class="note">No reps yet. Add them in Setup, or in Storm Command once hiring starts.</p>'; }
+    if(!dirty.bonus) setVal('bRate', S.cfg.bonus);
+    $('bonusOut').innerHTML = S.periods.length ? S.periods.map(function(p,idx){
+      var rows = Object.keys(p.reps).map(function(r){ return '<tr><td>'+esc(r)+'</td><td class="num">'+f0(p.reps[r])+'</td><td class="num">'+money(p.reps[r]*p.rate)+'</td></tr>'; }).join('');
+      var tot = Object.keys(p.reps).reduce(function(a,r){ return a+p.reps[r]*p.rate; },0);
+      return '<h4 style="margin:'+(idx?'18px':'0')+' 0 6px;font-size:16px">'+esc(p.start)+' to '+esc(p.end)+' at '+money(p.rate)+' each</h4><div class="tablewrap"><table><thead><tr><th>Rep</th><th class="num">Appts set</th><th class="num">Bonus</th></tr></thead><tbody>'+rows+'<tr><td><strong>Total</strong></td><td></td><td class="num"><strong>'+money(tot)+'</strong></td></tr></tbody></table></div><button class="btn ghost small" data-copy="'+idx+'" style="margin-top:8px">Copy as CSV</button>';
+    }).join('') : '<div class="empty">No pay periods saved yet.</div>';
+  }
+  function renderSetup(){
+    var el = $('assumpFields');
+    if(!el.children.length){
+      el.innerHTML = FIELDS.map(function(f){ return '<div class="field"><label for="a-'+f[0]+'">'+f[1]+'</label><input type="number" inputmode="decimal" min="0" id="a-'+f[0]+'"></div>'; }).join('')
+        + '<div class="field"><label for="a-start">Season start (Monday)</label><input type="date" id="a-start"></div>';
+    }
+    if(!dirty.setup){ FIELDS.forEach(function(f){ setVal('a-'+f[0], S.cfg[f[0]]); }); setVal('a-start', S.cfg.start); }
+    var sf = $('seasonFields'), MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    if(!sf.children.length){ sf.innerHTML = MN.map(function(m,i){ return '<div class="field"><label for="a-m'+i+'">'+m+' (%)</label><input type="number" inputmode="decimal" min="0" id="a-m'+i+'"></div>'; }).join(''); }
+    if(!dirty.setup){ S.cfg.season.forEach(function(v,i){ setVal('a-m'+i, v); }); }
+    seasonSum();
+    var reps = S.cfg.roster || [];
+    $('rosterList').innerHTML = reps.length ? reps.map(function(r,i){
+      return '<div class="task"><span>'+esc(r)+'</span><button class="btn ghost small" data-rm="'+i+'">Remove</button></div>';
+    }).join('') : '<div class="empty">No reps added yet.</div>';
+  }
+  function seasonSum(){
+    var t=0; for(var i=0;i<12;i++){ var el=$('a-m'+i); t += el ? (Number(el.value)||0) : 0; }
+    $('seasonSum').textContent = 'Total '+f1(t)+'%'+(Math.abs(t-100)>0.5?' (the app scales it to 100%)':'');
+  }
+
+  /* ---------- events ---------- */
+  function showTab(name){
+    document.querySelectorAll('nav.tabs button').forEach(function(b){ b.setAttribute('aria-selected', b.dataset.tab===name?'true':'false'); });
+    document.querySelectorAll('section.tab').forEach(function(s){ s.classList.toggle('on', s.id==='tab-'+name); });
+    try{ localStorage.setItem('gk:tab', name); }catch(e){}
+  }
+  document.querySelectorAll('nav.tabs button').forEach(function(b){ b.addEventListener('click', function(){ showTab(b.dataset.tab); }); });
+
+  [['tab-today','today'],['tab-weekly','weekly'],['tab-setup','setup'],['tab-bonus','bonus']].forEach(function(x){
+    $(x[0]).addEventListener('input', function(e){ if(e.target.tagName==='INPUT' && e.target.type!=='checkbox') dirty[x[1]] = true; });
+  });
+  $('savePulse').addEventListener('click', async function(){
+    var key = ymd(new Date()), data = {date:key, doors:num('pDoors'), appts:num('pAppts'), paid:num('pPaid')};
+    dirty.today=false; S.pulse[key]=data; renderAll();
+    if(await persist('pulse', key, data)) toast('Saved today.');
+  });
+  $('wStart').addEventListener('change', function(){ dirty.weekly=false; loadWeekForm(); });
+  $('fillWeekly').addEventListener('click', function(){
+    var s = weekSums($('wStart').value);
+    if(!s.n){ toast('No daily pulses saved for that week.'); return; }
+    $('wDoors').value=s.doors; $('wSet').value=s.appts; $('wPaid').value=s.paid; dirty.weekly=true;
+  });
+  $('saveWeekly').addEventListener('click', async function(){
+    var wk = $('wStart').value;
+    if(!wk){ toast('Pick the Monday this week starts on.'); return; }
+    var data = {date:wk, doors:num('wDoors'), set:num('wSet'), sat:num('wSat'), sold:num('wSold'), paid:num('wPaid'), done:num('wDone'), back:num('wBack'), soldC:num('wSoldC'), denied:num('wDenied'), cancN:num('wCancN'), cancAmt:num('wCancAmt'),
+      stages:{claim:num('sClaim'), sold:num('sSold'), sched:num('sSched'), inst:num('sInst'), inv:num('sInv')}};
+    dirty.weekly=false; S.weekly[wk]=data; renderAll();
+    if(await persist('weekly', wk, data)) toast('Week saved.');
+  });
+  $('groups').addEventListener('change', function(e){
+    var id = e.target.dataset && e.target.dataset.id; if(!id) return;
+    if(e.target.checked) S.checks[id]=true; else delete S.checks[id];
+    renderAll(); saveChecks();
+  });
+  $('groups').addEventListener('click', function(e){
+    var r = e.target.dataset && e.target.dataset.reset; if(!r) return;
+    GROUPS.filter(function(g){ return g.id===r; })[0].items.forEach(function(i){ delete S.checks[i[0]]; });
+    renderAll(); saveChecks();
+  });
+  $('addTask').addEventListener('click', function(){
+    var v=$('newTask').value.trim(); if(!v) return;
+    S.tasks.push({text:v, done:false}); $('newTask').value=''; renderAll(); saveTasks();
+  });
+  $('newTask').addEventListener('keydown', function(e){ if(e.key==='Enter') $('addTask').click(); });
+  $('taskList').addEventListener('click', function(e){
+    var i = e.target.dataset && e.target.dataset.del; if(i===undefined) return;
+    S.tasks.splice(+i,1); renderAll(); saveTasks();
+  });
+  $('taskList').addEventListener('change', function(e){
+    var i = e.target.dataset && e.target.dataset.t; if(i===undefined) return;
+    S.tasks[+i].done = e.target.checked; renderAll(); saveTasks();
+  });
+  $('stormTasks').addEventListener('click', function(){
+    var have = S.tasks.map(function(t){ return t.text; });
+    STORM.forEach(function(t){ if(have.indexOf(t)<0) S.tasks.push({text:t, done:false}); });
+    renderAll(); saveTasks(); toast('Storm-response tasks added.');
+  });
+  $('saveBonus').addEventListener('click', async function(){
+    var start=$('bStart').value, end=$('bEnd').value;
+    if(!start || !end){ toast('Pick the period start and end dates.'); return; }
+    var reps={}; document.querySelectorAll('.brInput').forEach(function(i){ reps[i.dataset.rep]=Math.max(Number(i.value)||0,0); });
+    if(!Object.keys(reps).length){ toast('Add reps first.'); return; }
+    S.periods.unshift({start:start, end:end, rate:num('bRate')||S.cfg.bonus, reps:reps});
+    S.periods = S.periods.slice(0,12);
+    document.querySelectorAll('.brInput').forEach(function(i){ i.value=''; });
+    dirty.bonus=false; renderAll(); if(await savePeriods()) toast('Period saved.');
+  });
+  $('bonusOut').addEventListener('click', async function(e){
+    var i = e.target.dataset && e.target.dataset.copy; if(i===undefined) return;
+    var p = S.periods[+i], rows=[['Rep','Appointments set','Rate','Bonus']];
+    Object.keys(p.reps).forEach(function(r){ rows.push([r, p.reps[r], p.rate, (p.reps[r]*p.rate).toFixed(2)]); });
+    var csv = rows.map(function(r){ return r.join(','); }).join('\n');
+    try{ await navigator.clipboard.writeText(csv); toast('CSV copied.'); }catch(err){ toast('Copy was blocked. Select the table and copy it instead.'); }
+  });
+  $('seasonFields').addEventListener('input', seasonSum);
+  $('saveSeason').addEventListener('click', async function(){
+    var a=[]; for(var i=0;i<12;i++) a.push(num('a-m'+i));
+    if(a.reduce(function(x,y){ return x+y; },0)<=0){ toast('Enter a share for at least one month.'); return; }
+    S.cfg.season=a; dirty.setup=false; renderAll(); if(await saveCfg()) toast('Curve saved.');
+  });
+  $('saveCfg').addEventListener('click', async function(){
+    FIELDS.forEach(function(f){ S.cfg[f[0]] = num('a-'+f[0]); });
+    if($('a-start').value) S.cfg.start = $('a-start').value;
+    dirty.setup=false; renderAll(); if(await saveCfg()) toast('Assumptions saved.');
+  });
+  $('addRep').addEventListener('click', function(){
+    var v=$('newRep').value.trim(); if(!v) return;
+    S.cfg.roster = (S.cfg.roster||[]).concat([v]); $('newRep').value=''; renderAll(); saveCfg();
+  });
+  $('newRep').addEventListener('keydown', function(e){ if(e.key==='Enter') $('addRep').click(); });
+  $('rosterList').addEventListener('click', function(e){
+    var i = e.target.dataset && e.target.dataset.rm; if(i===undefined) return;
+    S.cfg.roster.splice(+i,1); renderAll(); saveCfg();
+  });
+
+  function renderAll(){ renderPace(); renderToday(); renderWeekly(); renderChecklist(); renderBonus(); renderSetup(); }
+
+  /* ---------- boot ---------- */
+  renderAll();
+  var savedTab = 'today'; try{ savedTab = localStorage.getItem('gk:tab') || 'today'; }catch(e){}
+  if(document.getElementById('tab-'+savedTab)) showTab(savedTab);
+  loadAll();
+  setInterval(loadAll, 30000);
+})();
+</script>
+</body>
+</html>

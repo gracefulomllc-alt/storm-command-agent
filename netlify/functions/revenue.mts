@@ -1,4 +1,4 @@
-// Revenue progress toward the $3M total / $1M canvasser goal.
+// Revenue progress toward the $5M total / $1M canvasser goal.
 //   GET  /api/revenue          -> latest cached snapshot + goals
 //   POST /api/revenue?refresh=1 -> pull fresh numbers from SalesRabbit/AccuLynx, cache, return
 //   POST /api/revenue          -> manual entry {totalDollars, canvasserDollars}
@@ -9,7 +9,7 @@ import { fetchSalesRabbitSold, fetchAccuLynxSold } from "./lib/crm.js";
 const db = getDatabase();
 
 // Good Knight's stated goals (see storm-command-agent README / Terel's business targets).
-const GOAL_TOTAL_CENTS = 300_000_000; // $3,000,000
+const GOAL_TOTAL_CENTS = 500_000_000; // $5,000,000
 const GOAL_CANVASSER_CENTS = 100_000_000; // $1,000,000
 
 async function latestSnapshot() {

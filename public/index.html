@@ -135,7 +135,7 @@
   </div>
   <div class="goal-bars">
     <div class="goal-bar">
-      <div class="label"><span>Total</span><span id="goalTotalLabel">$0 / $3.0M</span></div>
+      <div class="label"><span>Total</span><span id="goalTotalLabel">$0 / $5.0M</span></div>
       <div class="track"><div class="fill" id="goalTotalFill" style="width:0%"></div></div>
     </div>
     <div class="goal-bar">
@@ -145,6 +145,7 @@
   </div>
   <div style="display:flex; align-items:center; gap:12px;">
     <span id="status">Loading…</span>
+    <a class="refresh-btn" href="/desk.html" style="text-decoration:none;">Manager Desk</a>
     <a class="refresh-btn" href="/rep.html" style="text-decoration:none;">Rep Check-In</a>
     <button class="refresh-btn" onclick="load(true)">Refresh</button>
   </div>
@@ -311,7 +312,7 @@ async function loadRevenue() {
     const res = await fetch('/api/revenue');
     const data = await res.json();
     const snap = data.snapshot || { total_sold_cents: 0, canvasser_sold_cents: 0 };
-    const goals = data.goals || { totalCents: 300000000, canvasserCents: 100000000 };
+    const goals = data.goals || { totalCents: 500000000, canvasserCents: 100000000 };
     const totalPct = Math.min(100, (snap.total_sold_cents / goals.totalCents) * 100);
     const canvPct = Math.min(100, (snap.canvasser_sold_cents / goals.canvasserCents) * 100);
     document.getElementById('goalTotalFill').style.width = `${totalPct}%`;
