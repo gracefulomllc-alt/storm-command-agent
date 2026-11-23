@@ -101,7 +101,7 @@ details.group>summary::-webkit-details-marker{display:none}
 <div class="wrap">
   <header class="top">
     <h1>Manager Desk</h1>
-    <div class="links"><a href="/">&larr; Storm Command</a><a href="/rep.html">Rep check-in</a></div>
+    <div class="links"><a href="/">&larr; Home</a><a href="/rep.html">Rep check-in</a></div>
   </header>
 
   <nav class="tabs" role="tablist" aria-label="Sections">
@@ -653,6 +653,7 @@ details.group>summary::-webkit-details-marker{display:none}
   /* ---------- boot ---------- */
   renderAll();
   var savedTab = 'today'; try{ savedTab = localStorage.getItem('gk:tab') || 'today'; }catch(e){}
+  var hashTab = (location.hash||'').slice(1); if(document.getElementById('tab-'+hashTab)) savedTab = hashTab;
   if(document.getElementById('tab-'+savedTab)) showTab(savedTab);
   loadAll();
   setInterval(loadAll, 30000);

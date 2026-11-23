@@ -2,368 +2,133 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Storm Command — Good Knight Roofing</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Good Knight — Today</title>
 <style>
-  :root {
-    --bg: #0b1220;
-    --panel: #111a2b;
-    --border: #2a3a52;
-    --text: #eaf2ff;
-    --muted: #9fb3cc;
-    --blue: #2563eb;
-    --high: #ef4444;
-    --mid: #f59e0b;
-    --low: #64748b;
-  }
+  :root { --bg:#0b1220; --panel:#131c2e; --border:#233049; --text:#e8edf6; --muted:#8a99b5; --brass:#d6b031; --blue:#2563eb; --green:#22c55e; --red:#ef4444; }
   * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-  }
-  header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 20px;
-    border-bottom: 1px solid var(--border);
-    background: linear-gradient(180deg, #0f1830, #0b1220);
-  }
-  header h1 { font-size: 18px; margin: 0; }
-  header .sub { color: var(--muted); font-size: 12px; }
-  #status { font-size: 12px; color: var(--muted); }
-  .goal-bars { display: flex; gap: 18px; }
-  .goal-bar { width: 160px; }
-  .goal-bar .label { font-size: 10px; color: var(--muted); display: flex; justify-content: space-between; margin-bottom: 3px; }
-  .goal-bar .track { height: 6px; background: #1c2840; border-radius: 4px; overflow: hidden; }
-  .goal-bar .fill { height: 100%; background: linear-gradient(90deg, #2563eb, #22c55e); }
-  main {
-    display: grid;
-    grid-template-columns: minmax(340px, 420px) 1fr;
-    height: calc(100vh - 94px);
-  }
-  #cards {
-    overflow-y: auto;
-    border-right: 1px solid var(--border);
-    padding: 12px;
-  }
-  #map { height: 100%; position: relative; }
-  .pane-tabs { display: flex; gap: 6px; margin-bottom: 12px; }
-  .pane-tabs button { flex: 1; background: var(--panel); border: 1px solid var(--border); color: var(--muted); padding: 8px; border-radius: 6px; font-size: 12px; cursor: pointer; }
-  .pane-tabs button.active { background: var(--blue); color: #fff; border-color: var(--blue); }
-  .map-controls { position: absolute; top: 10px; right: 10px; z-index: 1000; display: flex; flex-direction: column; gap: 6px; }
-  .map-controls button { background: rgba(17,26,43,0.92); border: 1px solid var(--border); color: var(--text); padding: 6px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; }
-  .map-controls button.active { background: var(--blue); border-color: var(--blue); }
-  .rep-card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 10px; }
-  .rep-card .name-row { display: flex; justify-content: space-between; align-items: center; }
-  .rep-card .name { font-weight: 700; }
-  .rep-status { font-size: 11px; padding: 2px 8px; border-radius: 10px; text-transform: uppercase; }
-  .rep-status.idle { background: #27344a; color: var(--muted); }
-  .rep-status.dispatched { background: #1d4ed8; color: #fff; }
-  .rep-status.on_site { background: #f59e0b; color: #1a1300; }
-  .rep-status.done { background: #22c55e; color: #042a0f; }
-  .rep-card .addr { font-size: 12px; color: var(--muted); margin: 6px 0; }
-  .rep-card .stats { font-size: 12px; color: var(--muted); display: flex; gap: 14px; }
-  .rep-card .stale { color: #ef4444; }
-  .card {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 14px;
-    margin-bottom: 12px;
-  }
-  .score-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-  .score-badge {
-    font-size: 20px;
-    font-weight: 800;
-    padding: 4px 10px;
-    border-radius: 8px;
-    color: #fff;
-  }
-  .score-badge.high { background: var(--high); }
-  .score-badge.medium { background: var(--mid); }
-  .score-badge.low { background: var(--low); }
-  .tier-label { font-size: 13px; color: var(--muted); }
-  .heart-addr {
-    font-size: 16px;
-    font-weight: 700;
-    margin: 6px 0;
-    line-height: 1.3;
-  }
-  .meta { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
-  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
-  .btn {
-    background: var(--blue);
-    color: #fff;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    text-decoration: none;
-    display: inline-block;
-  }
-  .btn.secondary { background: #27344a; }
-  .source-tag {
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    color: var(--muted);
-  }
-  #empty, #teamEmpty { padding: 30px; color: var(--muted); text-align: center; }
-  .hidden { display: none; }
-  .refresh-btn {
-    background: none;
-    border: 1px solid var(--border);
-    color: var(--muted);
-    border-radius: 6px;
-    padding: 6px 10px;
-    font-size: 12px;
-    cursor: pointer;
-  }
+  body { margin:0; background:var(--bg); color:var(--text); font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; padding: 20px 16px 60px; }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  h1 { font-size: 28px; margin: 6px 0 2px; }
+  .date { color: var(--muted); font-size: 14px; margin-bottom: 20px; }
+  .tiles { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 26px; }
+  a.tile { display:flex; flex-direction:column; justify-content:space-between; min-height: 170px; padding: 20px; border-radius: 14px; background: var(--panel); border:1px solid var(--border); color:var(--text); text-decoration:none; transition: transform .1s, border-color .1s; }
+  a.tile:hover, a.tile:focus-visible { border-color: var(--brass); transform: translateY(-2px); outline: none; }
+  .tile .icon { font-size: 34px; }
+  .tile .label { font-size: 22px; font-weight: 700; margin-top: 8px; }
+  .tile .head { font-size: 15px; color: var(--muted); margin-top: 6px; line-height: 1.35; }
+  .tile .head b { color: var(--text); }
+  .tile.storm { border-left: 5px solid var(--red); }
+  .tile.nums { border-left: 5px solid var(--green); }
+  .tile.team { border-left: 5px solid var(--blue); }
+  .tile.desk { border-left: 5px solid var(--brass); }
+  h2 { font-size: 16px; color: var(--muted); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; margin: 0 0 10px; }
+  .strip { background: var(--panel); border:1px solid var(--border); border-radius: 12px; padding: 4px 16px; }
+  .strip a { display:flex; gap: 12px; align-items:flex-start; padding: 14px 0; border-top: 1px solid var(--border); color: var(--text); text-decoration:none; font-size: 15px; }
+  .strip a:first-child { border-top: none; }
+  .strip .dot { flex:none; width: 10px; height: 10px; border-radius: 50%; margin-top: 6px; background: var(--muted); }
+  .dot.go { background: var(--red); } .dot.ok { background: var(--green); } .dot.todo { background: var(--brass); }
+  .strip small { display:block; color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .foot { text-align:center; margin-top: 24px; font-size: 13px; }
+  .foot a { color: var(--muted); margin: 0 10px; }
 </style>
 </head>
 <body>
-<header>
-  <div>
-    <h1>⚡ Storm Command</h1>
-    <div class="sub">Good Knight Roofing — Northern Colorado / Wyoming</div>
-  </div>
-  <div class="goal-bars">
-    <div class="goal-bar">
-      <div class="label"><span>Total</span><span id="goalTotalLabel">$0 / $5.0M</span></div>
-      <div class="track"><div class="fill" id="goalTotalFill" style="width:0%"></div></div>
-    </div>
-    <div class="goal-bar">
-      <div class="label"><span>Canvasser</span><span id="goalCanvasserLabel">$0 / $1.0M</span></div>
-      <div class="track"><div class="fill" id="goalCanvasserFill" style="width:0%"></div></div>
-    </div>
-  </div>
-  <div style="display:flex; align-items:center; gap:12px;">
-    <span id="status">Loading…</span>
-    <a class="refresh-btn" href="/desk.html" style="text-decoration:none;">Manager Desk</a>
-    <a class="refresh-btn" href="/rep.html" style="text-decoration:none;">Rep Check-In</a>
-    <button class="refresh-btn" onclick="load(true)">Refresh</button>
-  </div>
-</header>
-<main>
-  <div id="cards">
-    <div class="pane-tabs">
-      <button id="tabStorms" class="active" onclick="switchPane('storms')">⚡ Storms</button>
-      <button id="tabTeam" onclick="switchPane('team')">👥 Team</button>
-    </div>
-    <div id="stormsPane"><div id="empty">Loading storms…</div></div>
-    <div id="teamPane" class="hidden"><div id="teamEmpty">Loading team…</div></div>
-  </div>
-  <div id="map">
-    <div class="map-controls">
-      <button id="btnStreets" onclick="toggleStreets()">Street detail</button>
-      <button id="btnRadar" onclick="toggleRadar()">Radar overlay</button>
-    </div>
-  </div>
-</main>
+<div class="wrap">
+  <h1>Good Knight Command</h1>
+  <div class="date" id="date"></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <div class="tiles">
+    <a class="tile storm" href="/storms.html">
+      <div><div class="icon">⛈️</div><div class="label">Storms</div></div>
+      <div class="head" id="hStorm">Loading…</div>
+    </a>
+    <a class="tile nums" href="/desk.html#today">
+      <div><div class="icon">📊</div><div class="label">Check numbers</div></div>
+      <div class="head" id="hNums">Loading…</div>
+    </a>
+    <a class="tile team" href="/storms.html#team">
+      <div><div class="icon">👥</div><div class="label">My team</div></div>
+      <div class="head" id="hTeam">Loading…</div>
+    </a>
+    <a class="tile desk" href="/desk.html#checklist">
+      <div><div class="icon">🗂️</div><div class="label">Manager Desk</div></div>
+      <div class="head" id="hDesk">Loading…</div>
+    </a>
+  </div>
+
+  <h2>Today</h2>
+  <div class="strip" id="strip"><a href="#"><span class="dot"></span><span>Loading…</span></a></div>
+
+  <div class="foot"><a href="/rep.html">Rep check-in page</a></div>
+</div>
+
 <script>
-const map = L.map('map', { renderer: L.canvas(), attributionControl: true }).setView([40.5, -104.9], 7);
-L.control.attribution({ prefix: false }).addAttribution('&copy; OpenStreetMap &copy; CARTO &copy; RainViewer').addTo(map);
+const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const money = c => { const d=(c||0)/100; return d>=1e6?'$'+(d/1e6).toFixed(2)+'M':d>=1e3?'$'+Math.round(d/1e3)+'k':'$'+Math.round(d); };
+const pad = n => (n<10?'0':'')+n;
+const today = new Date();
+const key = today.getFullYear()+'-'+pad(today.getMonth()+1)+'-'+pad(today.getDate());
+document.getElementById('date').textContent = today.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+const j = (u) => fetch(u).then(r => r.ok ? r.json() : Promise.reject(new Error(u)));
 
-let markers = [];
+const DAILY_IDS = ['d1','d2','d3','d4','d5','d6'];
 
-function sourceLabel(src) {
-  return {
-    'confirmed-spotter': '✅ Confirmed hail report',
-    'tracked-cell': '📍 NWS-tracked storm position',
-    'polygon-estimate': '🔵 Estimated storm center',
-  }[src] || 'Unknown';
+async function load() {
+  const [storms, reps, rev, pulse, checks, cfg] = await Promise.all([
+    j('/api/storms').catch(() => null),
+    j('/api/reps').catch(() => null),
+    j('/api/revenue').catch(() => null),
+    j('/api/desk?path=pulse/' + key).catch(() => null),
+    j('/api/desk?path=gk/checks').catch(() => null),
+    j('/api/desk?path=gk/cfg').catch(() => null),
+  ]);
+  const strip = [];
+
+  // Storms
+  const list = (storms && storms.storms) || [];
+  if (storms) {
+    if (list.length) {
+      const top = list[0];
+      document.getElementById('hStorm').innerHTML = `<b>${list.length} active</b> · top score <b>${top.claim.score}</b><br>${esc(top.startAddress)}`;
+      strip.push({ cls:'go', href:'/storms.html', t:`Start here: ${esc(top.startAddress)}`, s:`Score ${top.claim.score} · ${esc(top.counties)}${top.size ? ' · '+top.size+'" hail' : ''}` });
+    } else {
+      document.getElementById('hStorm').textContent = 'No qualifying hail right now';
+      strip.push({ cls:'ok', href:'/storms.html', t:'No qualifying storms right now', s:'The agent rescans every 15 minutes and emails you when one hits.' });
+    }
+  } else document.getElementById('hStorm').textContent = 'Tap to open the map';
+
+  // Numbers
+  const snap = rev && rev.snapshot;
+  const goalCents = (rev && rev.goals && rev.goals.totalCents) || 500000000;
+  const sold = snap ? snap.total_sold_cents : 0;
+  document.getElementById('hNums').innerHTML = `<b>${money(sold)}</b> of ${money(goalCents)} goal`;
+  if (pulse && pulse.data) strip.push({ cls:'ok', href:'/desk.html#today', t:'Daily pulse logged', s:`${pulse.data.doors||0} doors · ${pulse.data.appts||0} appointments` });
+  else strip.push({ cls:'todo', href:'/desk.html#today', t:'Log today\'s team pulse', s:'Doors, appointments set and cash collected.' });
+
+  // Team
+  if (reps) {
+    const onSite = reps.filter(r => r.status === 'on_site').length;
+    const disp = reps.filter(r => r.status === 'dispatched').length;
+    document.getElementById('hTeam').innerHTML = reps.length
+      ? `<b>${reps.length}</b> reps · ${onSite} on site · ${disp} dispatched`
+      : 'No reps yet. Hiring starts Jan 1';
+    if (reps.length) strip.push({ cls: onSite||disp ? 'go':'todo', href:'/storms.html#team', t:`${onSite} on site, ${disp} dispatched`, s:`${reps.length} reps on the roster` });
+  } else document.getElementById('hTeam').textContent = 'Tap to see your reps';
+
+  // Desk
+  const map = (checks && checks.data && checks.data.map) || {};
+  const left = DAILY_IDS.filter(id => !map[id]).length;
+  const startStr = (cfg && cfg.data && cfg.data.start) || '2027-01-04';
+  const days = Math.ceil((new Date(startStr + 'T00:00:00') - today) / 86400000);
+  document.getElementById('hDesk').innerHTML = days > 0 ? `Season opens in <b>${days} days</b>` : `<b>${left}</b> daily items left`;
+  strip.push({ cls: left ? 'todo':'ok', href:'/desk.html#checklist', t: left ? `${left} of ${DAILY_IDS.length} daily checklist items open` : 'Daily checklist done', s:'Huddle, SalesRabbit check, appointments, new signed jobs.' });
+
+  document.getElementById('strip').innerHTML = strip.map(x =>
+    `<a href="${x.href}"><span class="dot ${x.cls}"></span><span>${x.t}<small>${x.s}</small></span></a>`).join('');
 }
-
-function directionsUrl(pt) {
-  if (!pt) return '#';
-  return `https://www.google.com/maps/dir/?api=1&destination=${pt.lat},${pt.lon}`;
-}
-
-function render(storms) {
-  const cardsEl = document.getElementById('stormsPane');
-  markers.forEach(m => map.removeLayer(m));
-  markers = [];
-
-  if (!storms.length) {
-    cardsEl.innerHTML = '<div id="empty">No active storms meeting the 1"+ hail threshold right now. Check back — the agent scans every 15 minutes.</div>';
-    return;
-  }
-
-  cardsEl.innerHTML = storms.map(s => `
-    <div class="card">
-      <div class="score-row">
-        <div class="score-badge ${s.claim.tier}">${s.claim.score}</div>
-        <div class="tier-label">${s.claim.tierLabel} · ${s.region === 'primary' ? 'Home turf' : 'Corridor'}</div>
-      </div>
-      <div class="heart-addr">🎯 ${s.startAddress}</div>
-      <div class="source-tag">${sourceLabel(s.targetSource)}</div>
-      <div class="meta">${s.counties}${s.size ? ` · ${s.size}" hail` : ''}${s.windMph ? ` · ${s.windMph} mph wind` : ''} · top factor: ${s.claim.topFactor}</div>
-      <div class="btn-row">
-        <a class="btn" href="${directionsUrl(s.targetPoint)}" target="_blank">Directions</a>
-        <button class="btn secondary" onclick="copyAddr('${s.startAddress.replace(/'/g, "\\'")}')">Copy Address</button>
-      </div>
-    </div>
-  `).join('');
-
-  storms.forEach(s => {
-    if (!s.targetPoint) return;
-    const color = s.claim.tier === 'high' ? '#ef4444' : s.claim.tier === 'medium' ? '#f59e0b' : '#64748b';
-    const marker = L.circleMarker([s.targetPoint.lat, s.targetPoint.lon], {
-      radius: 9, color, fillColor: color, fillOpacity: 0.85, weight: 2,
-    }).addTo(map).bindPopup(`<b>${s.claim.score}/100</b><br>${s.startAddress}`);
-    markers.push(marker);
-  });
-}
-
-function copyAddr(addr) {
-  navigator.clipboard?.writeText(addr);
-}
-
-async function load(forceRefresh) {
-  const statusEl = document.getElementById('status');
-  statusEl.textContent = 'Scanning…';
-  try {
-    const url = forceRefresh ? '/api/storms?refresh=1' : '/api/storms';
-    const res = await fetch(url);
-    const data = await res.json();
-    render(data.storms || []);
-    const counts = data.counts || {};
-    statusEl.textContent = `Updated ${new Date(data.scannedAt).toLocaleTimeString()} · CO:${counts.CO ?? '?'} WY:${counts.WY ?? '?'} active`;
-  } catch (err) {
-    statusEl.textContent = `Error: ${err.message}`;
-  }
-}
-
-// --- Pane switching (Storms / Team) ---
-function switchPane(which) {
-  document.getElementById('tabStorms').classList.toggle('active', which === 'storms');
-  document.getElementById('tabTeam').classList.toggle('active', which === 'team');
-  document.getElementById('stormsPane').classList.toggle('hidden', which !== 'storms');
-  document.getElementById('teamPane').classList.toggle('hidden', which !== 'team');
-}
-
-// --- Team roster + live GPS dots ---
-let repMarkers = [];
-const STATUS_LABEL = { idle: 'Idle', dispatched: 'Dispatched', on_site: 'On Site', done: 'Done' };
-
-function renderTeam(reps) {
-  const el = document.getElementById('teamPane');
-  repMarkers.forEach(m => map.removeLayer(m));
-  repMarkers = [];
-
-  if (!reps.length) {
-    el.innerHTML = '<div id="teamEmpty">No reps added yet. Add them via the /api/reps endpoint or ask Claude to add a quick admin form.</div>';
-    return;
-  }
-
-  el.innerHTML = reps.map(r => {
-    const staleMin = r.location_updated_at ? Math.round((Date.now() - new Date(r.location_updated_at).getTime()) / 60000) : null;
-    return `
-    <div class="rep-card">
-      <div class="name-row">
-        <span class="name">${r.name}</span>
-        <span class="rep-status ${r.status}">${STATUS_LABEL[r.status] || r.status}</span>
-      </div>
-      <div class="addr">${r.assigned_address || 'No turf assigned'}</div>
-      <div class="stats">
-        <span>🚪 ${r.doors_knocked} doors</span>
-        <span>📅 ${r.appointments_set} appts</span>
-        <span class="${staleMin !== null && staleMin > 30 ? 'stale' : ''}">${staleMin !== null ? `📍 ${staleMin}m ago` : '📍 no location yet'}</span>
-      </div>
-    </div>`;
-  }).join('');
-
-  reps.forEach(r => {
-    if (r.lat == null || r.lon == null) return;
-    const icon = L.divIcon({ className: '', html: `<div style="background:#2563eb;border:2px solid #fff;border-radius:50%;width:16px;height:16px;"></div>` });
-    const marker = L.marker([r.lat, r.lon], { icon }).addTo(map).bindPopup(`<b>${r.name}</b><br>${STATUS_LABEL[r.status]}`);
-    repMarkers.push(marker);
-  });
-}
-
-async function loadTeam() {
-  try {
-    const res = await fetch('/api/reps');
-    const reps = await res.json();
-    renderTeam(reps);
-  } catch (err) {
-    document.getElementById('teamPane').innerHTML = `<div id="teamEmpty">Error loading team: ${err.message}</div>`;
-  }
-}
-
-// --- Revenue goal bars ---
-function fmtMoney(cents) {
-  const dollars = (cents || 0) / 100;
-  if (dollars >= 1_000_000) return `$${(dollars / 1_000_000).toFixed(2)}M`;
-  if (dollars >= 1_000) return `$${(dollars / 1000).toFixed(0)}k`;
-  return `$${dollars.toFixed(0)}`;
-}
-
-async function loadRevenue() {
-  try {
-    const res = await fetch('/api/revenue');
-    const data = await res.json();
-    const snap = data.snapshot || { total_sold_cents: 0, canvasser_sold_cents: 0 };
-    const goals = data.goals || { totalCents: 500000000, canvasserCents: 100000000 };
-    const totalPct = Math.min(100, (snap.total_sold_cents / goals.totalCents) * 100);
-    const canvPct = Math.min(100, (snap.canvasser_sold_cents / goals.canvasserCents) * 100);
-    document.getElementById('goalTotalFill').style.width = `${totalPct}%`;
-    document.getElementById('goalCanvasserFill').style.width = `${canvPct}%`;
-    document.getElementById('goalTotalLabel').textContent = `${fmtMoney(snap.total_sold_cents)} / ${fmtMoney(goals.totalCents)}`;
-    document.getElementById('goalCanvasserLabel').textContent = `${fmtMoney(snap.canvasser_sold_cents)} / ${fmtMoney(goals.canvasserCents)}`;
-  } catch {
-    // Revenue is best-effort (needs CRM keys configured) — fail quietly, keep bars at 0.
-  }
-}
-
-// --- Basemap / radar toggles ---
-let streetsOn = false;
-let radarOn = false;
-let radarLayer = null;
-const darkLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', maxZoom: 19 }).addTo(map);
-const streetLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', maxZoom: 19 });
-
-function toggleStreets() {
-  streetsOn = !streetsOn;
-  document.getElementById('btnStreets').classList.toggle('active', streetsOn);
-  if (streetsOn) { map.removeLayer(darkLayer); streetLayer.addTo(map); }
-  else { map.removeLayer(streetLayer); darkLayer.addTo(map); }
-}
-
-async function toggleRadar() {
-  radarOn = !radarOn;
-  document.getElementById('btnRadar').classList.toggle('active', radarOn);
-  if (!radarOn) {
-    if (radarLayer) map.removeLayer(radarLayer);
-    return;
-  }
-  try {
-    const res = await fetch('https://api.rainviewer.com/public/weather-maps.json');
-    const data = await res.json();
-    const frames = data.radar?.past || [];
-    const latest = frames[frames.length - 1];
-    if (!latest) return;
-    radarLayer = L.tileLayer(`https://tilecache.rainviewer.com/v2/radar/${latest.time}/256/{z}/{x}/{y}/2/1_1.png`, { opacity: 0.55 }).addTo(map);
-  } catch {
-    radarOn = false;
-    document.getElementById('btnRadar').classList.remove('active');
-  }
-}
-
-load(false);
-loadTeam();
-loadRevenue();
-setInterval(() => load(false), 45 * 1000); // storms refresh every 45s — near-real-time without hammering the API
-setInterval(loadTeam, 20 * 1000); // team/GPS refresh every 20s
-setInterval(loadRevenue, 5 * 60 * 1000); // revenue every 5 min (CRM pulls are heavier)
+load();
+setInterval(load, 60000);
 </script>
 </body>
 </html>
