@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Storm Command — Rep Check-In</title>
+<style>
+  :root { --bg:#0b1220; --panel:#111a2b; --border:#2a3a52; --text:#eaf2ff; --muted:#9fb3cc; --blue:#2563eb; --green:#22c55e; --amber:#f59e0b; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+  .wrap { max-width:480px; margin:0 auto; padding:20px; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sub { color:var(--muted); font-size:13px; margin-bottom:20px; }
+  select, input { width:100%; padding:12px; margin-bottom:12px; border-radius:8px; border:1px solid var(--border); background:var(--panel); color:var(--text); font-size:16px; }
+  button { width:100%; padding:14px; border:none; border-radius:8px; font-size:16px; font-weight:700; cursor:pointer; margin-bottom:10px; }
+  .btn-primary { background:var(--blue); color:#fff; }
+  .status-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+  .status-btn { background:var(--panel); border:1px solid var(--border); color:var(--text); padding:16px 10px; }
+  .status-btn.active { background:var(--green); color:#04150a; border-color:var(--green); }
+  .counter-row { display:flex; align-items:center; justify-content:space-between; background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin-bottom:10px; }
+  .counter-row .count { font-size:28px; font-weight:800; }
+  .counter-row button { width:auto; padding:10px 18px; margin:0; background:var(--blue); color:#fff; }
+  .hidden { display:none; }
+  .gps-indicator { font-size:12px; color:var(--muted); text-align:center; margin-top:16px; }
+  .gps-indicator.live { color:var(--green); }
+  #assignedBox { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:16px; }
+  #assignedBox .label { font-size:11px; text-transform:uppercase; color:var(--muted); }
+  #assignedBox .addr { font-size:16px; font-weight:700; margin-top:4px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>⚡ Storm Command</h1>
+  <div class="sub">Rep check-in — Good Knight Roofing</div>
+
+  <div id="loginView">
+    <select id="repSelect"><option value="">Select your name…</option></select>
+    <input id="pinInput" type="tel" inputmode="numeric" placeholder="Your 4-digit PIN" maxlength="8" />
+    <button class="btn-primary" onclick="login()">Check In</button>
+  </div>
+
+  <div id="mainView" class="hidden">
+    <div id="assignedBox">
+      <div class="label">Your turf right now</div>
+      <div class="addr" id="assignedAddr">Not assigned yet — check with your manager</div>
+    </div>
+
+    <div class="status-grid">
+      <button class="status-btn" data-status="dispatched" onclick="setStatus('dispatched')">🚗 Dispatched</button>
+      <button class="status-btn" data-status="on_site" onclick="setStatus('on_site')">🏠 On Site</button>
+      <button class="status-btn" data-status="done" onclick="setStatus('done')">✅ Done</button>
+      <button class="status-btn" data-status="idle" onclick="setStatus('idle')">⏸ Idle</button>
+    </div>
+
+    <div class="counter-row">
+      <div>Doors knocked<br><span class="count" id="doorsCount">0</span></div>
+      <button onclick="logEvent('door_knocked')">+1</button>
+    </div>
+    <div class="counter-row">
+      <div>Appointments set<br><span class="count" id="apptsCount">0</span></div>
+      <button onclick="logEvent('appointment_set')">+1</button>
+    </div>
+
+    <div class="gps-indicator" id="gpsIndicator">Location sharing off</div>
+  </div>
+</div>
+
+<script>
+let repId = null, repPin = null, watchId = null;
+
+async function loadReps() {
+  const res = await fetch('/api/reps');
+  const reps = await res.json();
+  const sel = document.getElementById('repSelect');
+  reps.forEach(r => {
+    const opt = document.createElement('option');
+    opt.value = r.id;
+    opt.textContent = r.name;
+    sel.appendChild(opt);
+  });
+}
+loadReps();
+
+async function login() {
+  const id = document.getElementById('repSelect').value;
+  const pin = document.getElementById('pinInput').value.trim();
+  if (!id || !pin) { alert('Pick your name and enter your PIN'); return; }
+  // Verify by attempting a harmless location_ping-less check: we just store
+  // creds locally and verify on first real event; if PIN is wrong the event
+  // call will 401 and we bounce back to login.
+  repId = id;
+  repPin = pin;
+  localStorage.setItem('sc_rep_id', id);
+  localStorage.setItem('sc_rep_pin', pin);
+  document.getElementById('loginView').classList.add('hidden');
+  document.getElementById('mainView').classList.remove('hidden');
+  await refreshRepState();
+  startLocationSharing();
+}
+
+async function refreshRepState() {
+  const res = await fetch('/api/reps');
+  const reps = await res.json();
+  const me = reps.find(r => String(r.id) === String(repId));
+  if (!me) return;
+  document.getElementById('doorsCount').textContent = me.doors_knocked;
+  document.getElementById('apptsCount').textContent = me.appointments_set;
+  document.getElementById('assignedAddr').textContent = me.assigned_address || 'Not assigned yet — check with your manager';
+  document.querySelectorAll('.status-btn').forEach(b => b.classList.toggle('active', b.dataset.status === me.status));
+}
+
+async function callEvent(type, value) {
+  const res = await fetch(`/api/reps/${repId}/event`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ pin: repPin, type, value }),
+  });
+  if (res.status === 401) {
+    alert('Wrong PIN — please check in again');
+    logout();
+    return null;
+  }
+  return res.json();
+}
+
+async function setStatus(status) {
+  await callEvent('status_change', status);
+  refreshRepState();
+}
+
+async function logEvent(type) {
+  await callEvent(type);
+  refreshRepState();
+}
+
+function logout() {
+  localStorage.removeItem('sc_rep_id');
+  localStorage.removeItem('sc_rep_pin');
+  if (watchId) navigator.geolocation.clearWatch(watchId);
+  document.getElementById('mainView').classList.add('hidden');
+  document.getElementById('loginView').classList.remove('hidden');
+}
+
+let lastPingAt = 0;
+const PING_INTERVAL_MS = 20000; // throttle — watchPosition can fire far more often than this
+
+function startLocationSharing() {
+  if (!navigator.geolocation) {
+    document.getElementById('gpsIndicator').textContent = 'Location not supported on this device';
+    return;
+  }
+  const indicator = document.getElementById('gpsIndicator');
+  watchId = navigator.geolocation.watchPosition(
+    async (pos) => {
+      indicator.textContent = 'Location sharing live';
+      indicator.classList.add('live');
+      const now = Date.now();
+      if (now - lastPingAt < PING_INTERVAL_MS) return;
+      lastPingAt = now;
+      await callEvent('location_ping', { lat: pos.coords.latitude, lon: pos.coords.longitude });
+    },
+    (err) => {
+      indicator.textContent = `Location off (${err.message}) — tap to allow in browser settings`;
+      indicator.classList.remove('live');
+    },
+    { enableHighAccuracy: true, maximumAge: 20000, timeout: 15000 }
+  );
+}
+
+// Resume session if already checked in on this device.
+(function resume() {
+  const id = localStorage.getItem('sc_rep_id');
+  const pin = localStorage.getItem('sc_rep_pin');
+  if (id && pin) {
+    repId = id; repPin = pin;
+    loadReps().then(() => {
+      document.getElementById('loginView').classList.add('hidden');
+      document.getElementById('mainView').classList.remove('hidden');
+      refreshRepState();
+      startLocationSharing();
+    });
+  }
+})();
+
+setInterval(refreshRepState, 30000);
+</script>
+</body>
+</html>

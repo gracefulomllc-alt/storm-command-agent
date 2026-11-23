@@ -14,3 +14,5 @@
   GMAIL_USER = "Gmail address to send dispatch alerts FROM, e.g. you@gmail.com"
   GMAIL_APP_PASSWORD = "16-character Gmail App Password — generate at myaccount.google.com/apppasswords (needs 2-Step Verification on first)"
   ALERT_TO_EMAIL = "Email address that receives alerts (optional — defaults to GMAIL_USER if left blank)"
+  SALESRABBIT_API_KEY = "Optional — SalesRabbit API key, enables live revenue tracking toward the $3M/$1M goals"
+  ACCULYNX_API_KEY = "Optional — AccuLynx API key, enables live revenue tracking (schema best-effort, may need adjusting)"
