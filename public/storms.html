@@ -126,6 +126,20 @@
     cursor: pointer;
   }
 
+  .hist label { display:block; font-size:12px; color: var(--muted); margin: 10px 0 4px; }
+  .hist select, .hist input { width:100%; background:#0b1220; color: var(--text); border:1px solid var(--border); border-radius:8px; padding:10px; font-size:16px; }
+  .hist input[type=range] { padding:0; }
+  .hist .hint { font-size:12px; color: var(--muted); margin-top:8px; }
+  .hist .go-btn { width:100%; margin-top:14px; padding:14px; font-size:15px; }
+  .hist-result { margin-top:14px; }
+  .big-score { display:flex; align-items:center; gap:14px; }
+  .big-score .num { font-size:44px; font-weight:800; line-height:1; }
+  .big-score .of { font-size:16px; color: var(--muted); }
+  .verdict { display:inline-block; padding:4px 12px; border-radius:12px; font-weight:700; font-size:13px; text-transform:uppercase; }
+  .verdict.go { background:#22c55e; color:#042a0f; } .verdict.maybe { background:#f59e0b; color:#1a1300; } .verdict.skip { background:#ef4444; color:#fff; }
+  .hist-result ul { padding-left: 18px; margin: 10px 0 0; font-size: 13px; color: var(--muted); }
+  .hist-result li { margin-bottom: 6px; }
+  .hist-result .pct { font-size:15px; margin-top:6px; }
   @media (max-width: 800px) {
     header { flex-wrap: wrap; gap: 8px; padding: 10px 12px; }
     header .sub, .goal-bars { display: none; }
@@ -165,9 +179,25 @@
     <div class="pane-tabs">
       <button id="tabStorms" class="active" onclick="switchPane('storms')">⚡ Storms</button>
       <button id="tabTeam" onclick="switchPane('team')">👥 Team</button>
+      <button id="tabHistory" onclick="switchPane('history')">🕘 History</button>
     </div>
     <div id="stormsPane"><div id="empty">Loading storms…</div></div>
     <div id="teamPane" class="hidden"><div id="teamEmpty">Loading team…</div></div>
+    <div id="historyPane" class="hidden hist card">
+      <b>Past storms: is this area worth canvassing?</b>
+      <label for="histRange">When did the storm happen?</label>
+      <select id="histRange" onchange="histRangeChanged()"></select>
+      <div id="histCustom" class="hidden">
+        <label for="histFrom">From</label><input type="date" id="histFrom">
+        <label for="histTo">To</label><input type="date" id="histTo">
+      </div>
+      <label for="histRadius">Circle size: <span id="histRadiusLabel">10</span> miles</label>
+      <input type="range" id="histRadius" min="2" max="40" value="10" oninput="histRadiusChanged()">
+      <div class="hint" id="histHint">Tap the map to drop a circle on the area. If you don't, I'll score whatever the map is showing.</div>
+      <div class="btn-row" style="margin-top:10px"><button class="btn secondary" onclick="clearHistCircle()">Clear circle</button></div>
+      <button class="btn go-btn" onclick="scoreHistory()">Score this area</button>
+      <div class="hist-result" id="histResult"></div>
+    </div>
   </div>
   <div id="map">
     <div class="map-controls">
@@ -255,11 +285,16 @@ async function load(forceRefresh) {
 
 // --- Pane switching (Storms / Team) ---
 function switchPane(which) {
-  document.getElementById('tabStorms').classList.toggle('active', which === 'storms');
-  document.getElementById('tabTeam').classList.toggle('active', which === 'team');
-  document.getElementById('stormsPane').classList.toggle('hidden', which !== 'storms');
-  document.getElementById('teamPane').classList.toggle('hidden', which !== 'team');
+  const ids = { storms: ['tabStorms','stormsPane'], team: ['tabTeam','teamPane'], history: ['tabHistory','historyPane'] };
+  for (const k in ids) {
+    document.getElementById(ids[k][0]).classList.toggle('active', k === which);
+    document.getElementById(ids[k][1]).classList.toggle('hidden', k !== which);
+  }
+  currentPane = which;
+  if (which !== 'history') clearHistMarkers();
 }
+let currentPane = 'storms';
+let histCircle = null, histMarkers = [];
 
 function toggleBig() {
   const on = document.body.classList.toggle('bigmap');
@@ -269,6 +304,7 @@ function toggleBig() {
 }
 
 if (location.hash === '#team') switchPane('team');
+if (location.hash === '#history') switchPane('history');
 
 // --- Team roster + live GPS dots ---
 let repMarkers = [];
@@ -379,6 +415,102 @@ function toggleRadar() {
   radarLayer = L.tileLayer(radarUrl(), { opacity: 0.6, zIndex: 500 }).addTo(map);
   radarTimer = setInterval(() => { if (radarLayer) radarLayer.setUrl(radarUrl()); }, 120000);
 }
+
+
+// --- Storm history scoring ---
+const pad2 = n => String(n).padStart(2, '0');
+const localYmd = d => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+
+function buildRangeOptions() {
+  const sel = document.getElementById('histRange');
+  const now = new Date();
+  let html = '<option value="30d">Last 30 days</option>';
+  for (let i = 0; i < 24; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    html += `<option value="m:${d.getFullYear()}-${pad2(d.getMonth() + 1)}">${d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</option>`;
+  }
+  html += '<option value="custom">Pick exact dates…</option>';
+  sel.innerHTML = html;
+  const t = localYmd(now);
+  document.getElementById('histTo').value = t;
+  document.getElementById('histFrom').value = localYmd(new Date(now.getTime() - 14 * 86400000));
+}
+function histRangeChanged() {
+  document.getElementById('histCustom').classList.toggle('hidden', document.getElementById('histRange').value !== 'custom');
+}
+function histDates() {
+  const v = document.getElementById('histRange').value;
+  const now = new Date();
+  if (v === '30d') return { from: localYmd(new Date(now.getTime() - 30 * 86400000)), to: localYmd(now) };
+  if (v.startsWith('m:')) {
+    const [y, m] = v.slice(2).split('-').map(Number);
+    const last = new Date(y, m, 0);
+    return { from: `${y}-${pad2(m)}-01`, to: localYmd(last > now ? now : last) };
+  }
+  return { from: document.getElementById('histFrom').value, to: document.getElementById('histTo').value };
+}
+function histRadiusMi() { return Number(document.getElementById('histRadius').value); }
+function histRadiusChanged() {
+  document.getElementById('histRadiusLabel').textContent = histRadiusMi();
+  if (histCircle) histCircle.setRadius(histRadiusMi() * 1609.34);
+}
+function clearHistMarkers() { histMarkers.forEach(m => map.removeLayer(m)); histMarkers = []; }
+function clearHistCircle() {
+  if (histCircle) { map.removeLayer(histCircle); histCircle = null; }
+  clearHistMarkers();
+  document.getElementById('histHint').textContent = "Tap the map to drop a circle on the area. If you don't, I'll score whatever the map is showing.";
+}
+map.on('click', e => {
+  if (currentPane !== 'history') return;
+  if (histCircle) histCircle.setLatLng(e.latlng);
+  else histCircle = L.circle(e.latlng, { radius: histRadiusMi() * 1609.34, color: '#2563eb', weight: 2, fillOpacity: 0.12 }).addTo(map);
+  document.getElementById('histHint').textContent = 'Circle placed. Tap again to move it, or change the size with the slider.';
+});
+
+async function scoreHistory() {
+  const out = document.getElementById('histResult');
+  const { from, to } = histDates();
+  if (!from || !to || from > to) { out.innerHTML = '<div class="meta">Pick a valid date range first.</div>'; return; }
+  let center, radius;
+  if (histCircle) {
+    center = histCircle.getLatLng(); radius = histRadiusMi();
+  } else {
+    center = map.getCenter();
+    const b = map.getBounds();
+    const halfW = map.distance(b.getNorthWest(), b.getNorthEast()) / 2;
+    const halfH = map.distance(b.getNorthWest(), b.getSouthWest()) / 2;
+    radius = Math.min(60, Math.max(2, Math.min(halfW, halfH) / 1609.34));
+  }
+  out.innerHTML = '<div class="meta">Checking storm reports…</div>';
+  clearHistMarkers();
+  try {
+    const q = new URLSearchParams({ from, to, lat: center.lat, lon: center.lng, radius: radius.toFixed(1) });
+    const res = await fetch('/api/history?' + q);
+    const d = await res.json();
+    if (!res.ok) { out.innerHTML = `<div class="meta">${d.error || 'Something went wrong.'}</div>`; return; }
+    const verdictText = { go: 'Worth sending canvassers', maybe: 'Borderline: scout first', skip: 'Not worth the drive' }[d.verdict];
+    out.innerHTML = `
+      <div class="big-score"><div><span class="num">${d.score}</span><span class="of">/10</span></div>
+        <div><span class="verdict ${d.verdict}">${d.verdictLabel}</span><div class="pct"><b>~${d.approvalPct}%</b> estimated approval likelihood</div></div></div>
+      <div class="meta" style="margin-top:8px">${verdictText} · ${Math.round(d.radiusMi)} mi circle · ${d.from} to ${d.to}</div>
+      <ul>${d.reasons.map(r => `<li>${r}</li>`).join('')}</ul>
+      ${d.daysFailed ? `<div class="meta" style="margin-top:8px;color:#f59e0b">${d.daysFailed} of ${d.daysChecked} days couldn't be loaded, so this may undercount.</div>` : ''}
+      <div class="meta" style="margin-top:8px">Estimate only, based on storm reports. It is not a guarantee of approval.</div>`;
+    d.reports.forEach(r => {
+      const sz = r.sizeInches;
+      const color = sz >= 1.75 ? '#ef4444' : sz >= 1.0 ? '#f59e0b' : '#94a3b8';
+      const m = L.circleMarker([r.lat, r.lon], { radius: 4 + sz * 3, color, fillColor: color, fillOpacity: 0.8, weight: 1 })
+        .addTo(map).bindPopup(`<b>${sz}" hail</b><br>${r.date}<br>${r.location}, ${r.county} Co. ${r.state}`);
+      histMarkers.push(m);
+    });
+    const ring = L.circle([d.center.lat, d.center.lon], { radius: d.radiusMi * 1609.34, color: '#2563eb', weight: 1, fill: false, dashArray: '4 4' }).addTo(map);
+    histMarkers.push(ring);
+    map.fitBounds(ring.getBounds(), { padding: [20, 20] });
+  } catch (err) {
+    out.innerHTML = `<div class="meta">Error: ${err.message}</div>`;
+  }
+}
+buildRangeOptions();
 
 load(false);
 loadTeam();
