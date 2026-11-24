@@ -171,7 +171,7 @@
   </div>
   <div id="map">
     <div class="map-controls">
-      <button id="btnStreets" onclick="toggleStreets()">Street detail</button>
+      <button id="btnStreets" onclick="toggleStreets()">Dark map</button>
       <button id="btnRadar" onclick="toggleRadar()">Radar overlay</button>
       <button id="btnBig" onclick="toggleBig()">Bigger map</button>
     </div>
@@ -181,7 +181,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
 const map = L.map('map', { renderer: L.canvas(), attributionControl: true }).setView([40.5, -104.9], 7);
-L.control.attribution({ prefix: false }).addAttribution('&copy; OpenStreetMap &copy; CARTO &copy; RainViewer').addTo(map);
+L.control.attribution({ prefix: false }).addAttribution('&copy; OpenStreetMap contributors &copy; Esri &copy; NOAA/Iowa Environmental Mesonet').addTo(map);
 
 let markers = [];
 
@@ -345,37 +345,39 @@ async function loadRevenue() {
 }
 
 // --- Basemap / radar toggles ---
-let streetsOn = false;
+// Default is OpenStreetMap street map (clearest on a phone). "Dark map" switches to Esri dark gray.
+let darkOn = false;
 let radarOn = false;
 let radarLayer = null;
-const darkLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', maxZoom: 19 }).addTo(map);
-const streetLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', maxZoom: 19 });
+let radarTimer = null;
+const streetLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+const darkBase = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', { maxZoom: 16 });
+const darkLabels = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', { maxZoom: 16 });
 
 function toggleStreets() {
-  streetsOn = !streetsOn;
-  document.getElementById('btnStreets').classList.toggle('active', streetsOn);
-  if (streetsOn) { map.removeLayer(darkLayer); streetLayer.addTo(map); }
-  else { map.removeLayer(streetLayer); darkLayer.addTo(map); }
+  darkOn = !darkOn;
+  document.getElementById('btnStreets').classList.toggle('active', darkOn);
+  document.getElementById('btnStreets').textContent = darkOn ? 'Street map' : 'Dark map';
+  if (darkOn) { map.removeLayer(streetLayer); darkBase.addTo(map); darkLabels.addTo(map); }
+  else { map.removeLayer(darkBase); map.removeLayer(darkLabels); streetLayer.addTo(map); }
+  if (radarLayer) radarLayer.bringToFront();
 }
 
-async function toggleRadar() {
+// NOAA NEXRAD radar via Iowa State Mesonet (free, no key), refreshed every 2 minutes while on.
+function radarUrl() {
+  return 'https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/nexrad-n0q-900913/{z}/{x}/{y}.png?t=' + Math.floor(Date.now() / 120000);
+}
+function toggleRadar() {
   radarOn = !radarOn;
   document.getElementById('btnRadar').classList.toggle('active', radarOn);
   if (!radarOn) {
     if (radarLayer) map.removeLayer(radarLayer);
+    radarLayer = null;
+    clearInterval(radarTimer);
     return;
   }
-  try {
-    const res = await fetch('https://api.rainviewer.com/public/weather-maps.json');
-    const data = await res.json();
-    const frames = data.radar?.past || [];
-    const latest = frames[frames.length - 1];
-    if (!latest) return;
-    radarLayer = L.tileLayer(`https://tilecache.rainviewer.com/v2/radar/${latest.time}/256/{z}/{x}/{y}/2/1_1.png`, { opacity: 0.55 }).addTo(map);
-  } catch {
-    radarOn = false;
-    document.getElementById('btnRadar').classList.remove('active');
-  }
+  radarLayer = L.tileLayer(radarUrl(), { opacity: 0.6, zIndex: 500 }).addTo(map);
+  radarTimer = setInterval(() => { if (radarLayer) radarLayer.setUrl(radarUrl()); }, 120000);
 }
 
 load(false);
