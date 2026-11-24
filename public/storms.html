@@ -141,6 +141,9 @@
   .hist-result li { margin-bottom: 6px; }
   .hist-result .pct { font-size:15px; margin-top:6px; }
   @media (max-width: 800px) {
+    .pane-tabs button { padding: 14px 6px; font-size: 14px; }
+    .card, .rep-card { font-size: 15px; }
+    .btn { padding: 12px 16px; font-size: 14px; }
     header { flex-wrap: wrap; gap: 8px; padding: 10px 12px; }
     header .sub, .goal-bars { display: none; }
     main { display: flex; flex-direction: column; height: auto; }
@@ -179,7 +182,7 @@
     <div class="pane-tabs">
       <button id="tabStorms" class="active" onclick="switchPane('storms')">⚡ Storms</button>
       <button id="tabTeam" onclick="switchPane('team')">👥 Team</button>
-      <button id="tabHistory" onclick="switchPane('history')">🕘 History</button>
+      <button id="tabHistory" onclick="switchPane('history')">🕘 Past storms</button>
     </div>
     <div id="stormsPane"><div id="empty">Loading storms…</div></div>
     <div id="teamPane" class="hidden"><div id="teamEmpty">Loading team…</div></div>

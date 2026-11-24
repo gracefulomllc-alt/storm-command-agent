@@ -7,16 +7,16 @@
 <style>
   :root { --bg:#0b1220; --panel:#131c2e; --border:#233049; --text:#e8edf6; --muted:#8a99b5; --brass:#d6b031; --blue:#2563eb; --green:#22c55e; --red:#ef4444; }
   * { box-sizing: border-box; }
-  body { margin:0; background:var(--bg); color:var(--text); font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; padding: 20px 16px 60px; }
+  body { font-size:17px; margin:0; background:var(--bg); color:var(--text); font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; padding: 20px 16px 60px; }
   .wrap { max-width: 860px; margin: 0 auto; }
   h1 { font-size: 28px; margin: 6px 0 2px; }
   .date { color: var(--muted); font-size: 14px; margin-bottom: 20px; }
   .tiles { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 26px; }
-  a.tile { display:flex; flex-direction:column; justify-content:space-between; min-height: 170px; padding: 20px; border-radius: 14px; background: var(--panel); border:1px solid var(--border); color:var(--text); text-decoration:none; transition: transform .1s, border-color .1s; }
+  a.tile { display:flex; flex-direction:column; justify-content:space-between; min-height: 190px; padding: 20px; border-radius: 14px; background: var(--panel); border:1px solid var(--border); color:var(--text); text-decoration:none; transition: transform .1s, border-color .1s; }
   a.tile:hover, a.tile:focus-visible { border-color: var(--brass); transform: translateY(-2px); outline: none; }
   .tile .icon { font-size: 34px; }
-  .tile .label { font-size: 22px; font-weight: 700; margin-top: 8px; }
-  .tile .head { font-size: 15px; color: var(--muted); margin-top: 6px; line-height: 1.35; }
+  .tile .label { font-size: 26px; font-weight: 700; margin-top: 8px; }
+  .tile .head { font-size: 17px; color: var(--muted); margin-top: 6px; line-height: 1.35; }
   .tile .head b { color: var(--text); }
   .tile.storm { border-left: 5px solid var(--red); }
   .tile.nums { border-left: 5px solid var(--green); }
@@ -24,11 +24,11 @@
   .tile.desk { border-left: 5px solid var(--brass); }
   h2 { font-size: 16px; color: var(--muted); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; margin: 0 0 10px; }
   .strip { background: var(--panel); border:1px solid var(--border); border-radius: 12px; padding: 4px 16px; }
-  .strip a { display:flex; gap: 12px; align-items:flex-start; padding: 14px 0; border-top: 1px solid var(--border); color: var(--text); text-decoration:none; font-size: 15px; }
+  .strip a { display:flex; gap: 12px; align-items:flex-start; padding: 16px 0; border-top: 1px solid var(--border); color: var(--text); text-decoration:none; font-size: 17px; }
   .strip a:first-child { border-top: none; }
   .strip .dot { flex:none; width: 10px; height: 10px; border-radius: 50%; margin-top: 6px; background: var(--muted); }
   .dot.go { background: var(--red); } .dot.ok { background: var(--green); } .dot.todo { background: var(--brass); }
-  .strip small { display:block; color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .strip small { display:block; color: var(--muted); font-size: 14px; margin-top: 2px; }
   .foot { text-align:center; margin-top: 24px; font-size: 13px; }
   .foot a { color: var(--muted); margin: 0 10px; }
 </style>
@@ -56,6 +56,8 @@
       <div class="head" id="hDesk">Loading…</div>
     </a>
   </div>
+
+  <a class="tile" href="/storms.html#history" style="min-height:0;flex-direction:row;align-items:center;gap:14px;margin-bottom:26px;padding:16px 20px"><span class="icon" style="font-size:28px">🕘</span><span><b style="font-size:19px">Check a past storm</b><div class="head" style="margin-top:2px">Is an area worth sending the team? Pick dates and circle it.</div></span></a>
 
   <h2>Today</h2>
   <div class="strip" id="strip"><a href="#"><span class="dot"></span><span>Loading…</span></a></div>
@@ -90,7 +92,7 @@ async function load() {
   if (storms) {
     if (list.length) {
       const top = list[0];
-      document.getElementById('hStorm').innerHTML = `<b>${list.length} active</b> · top score <b>${top.claim.score}</b><br>${esc(top.startAddress)}`;
+      document.getElementById('hStorm').innerHTML = `<b>Start here:</b><br>${esc(top.startAddress)}`;
       strip.push({ cls:'go', href:'/storms.html', t:`Start here: ${esc(top.startAddress)}`, s:`Score ${top.claim.score} · ${esc(top.counties)}${top.size ? ' · '+top.size+'" hail' : ''}` });
     } else {
       document.getElementById('hStorm').textContent = 'No qualifying hail right now';
