@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>Storm Command — Good Knight Roofing</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
 <style>
@@ -125,6 +125,17 @@
     font-size: 12px;
     cursor: pointer;
   }
+
+  @media (max-width: 800px) {
+    header { flex-wrap: wrap; gap: 8px; padding: 10px 12px; }
+    header .sub, .goal-bars { display: none; }
+    main { display: flex; flex-direction: column; height: auto; }
+    #map { order: -1; height: 55vh; min-height: 320px; flex: none; }
+    body.bigmap #map { height: 82vh; }
+    body.bigmap #cards { display: none; }
+    #cards { border-right: none; border-top: 1px solid var(--border); overflow: visible; }
+    .map-controls button { padding: 10px 12px; font-size: 13px; }
+  }
 </style>
 </head>
 <body>
@@ -162,6 +173,7 @@
     <div class="map-controls">
       <button id="btnStreets" onclick="toggleStreets()">Street detail</button>
       <button id="btnRadar" onclick="toggleRadar()">Radar overlay</button>
+      <button id="btnBig" onclick="toggleBig()">Bigger map</button>
     </div>
   </div>
 </main>
@@ -247,6 +259,13 @@ function switchPane(which) {
   document.getElementById('tabTeam').classList.toggle('active', which === 'team');
   document.getElementById('stormsPane').classList.toggle('hidden', which !== 'storms');
   document.getElementById('teamPane').classList.toggle('hidden', which !== 'team');
+}
+
+function toggleBig() {
+  const on = document.body.classList.toggle('bigmap');
+  document.getElementById('btnBig').textContent = on ? 'Show list' : 'Bigger map';
+  document.getElementById('btnBig').classList.toggle('active', on);
+  setTimeout(() => map.invalidateSize(), 50);
 }
 
 if (location.hash === '#team') switchPane('team');
