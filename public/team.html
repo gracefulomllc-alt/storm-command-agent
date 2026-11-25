@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>My Team — Good Knight</title>
+<style>
+  :root { --bg:#0b1220; --panel:#131c2e; --panel2:#0f1829; --border:#233049; --text:#e8edf6; --muted:#8a99b5; --brass:#d6b031; --blue:#2563eb; --green:#22c55e; --red:#ef4444; --amber:#f59e0b; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:16px; padding: 14px 14px 80px; }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  .top { display:flex; justify-content:space-between; align-items:baseline; gap:10px; flex-wrap:wrap; margin-bottom:4px; }
+  .top a { color: var(--brass); text-decoration:none; font-size:14px; margin-right:14px; }
+  h1 { margin: 6px 0 2px; font-size: 26px; }
+  .sub { color:var(--muted); font-size:14px; margin-bottom:14px; }
+  nav { display:flex; gap:6px; margin: 10px 0 16px; position:sticky; top:0; background:var(--bg); padding:8px 0; z-index:5; }
+  nav button { flex:1; background:var(--panel); border:1px solid var(--border); color:var(--muted); padding:14px 6px; border-radius:10px; font-size:15px; font-weight:600; cursor:pointer; }
+  nav button.on { background:var(--blue); color:#fff; border-color:var(--blue); }
+  section { display:none; } section.on { display:block; }
+  .card { background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:12px; }
+  h2 { font-size:15px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; margin: 18px 0 8px; }
+  .empty { color:var(--muted); padding:18px 4px; line-height:1.5; }
+  .pill { display:inline-block; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:700; text-transform:uppercase; }
+  .pill.decision { background:var(--red); color:#fff; } .pill.warning { background:var(--amber); color:#1a1300; } .pill.coach { background:#eab308; color:#1a1300; }
+  .pill.ok, .pill.nodata, .pill.ramping { background:#27344a; color:var(--muted); } .pill.great { background:var(--green); color:#042a0f; }
+  .rep.decision { border-left:5px solid var(--red); } .rep.warning { border-left:5px solid var(--amber); } .rep.coach { border-left:5px solid #eab308; } .rep.great { border-left:5px solid var(--green); }
+  .row { display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; }
+  .name { font-size:19px; font-weight:700; }
+  .action { margin: 8px 0; font-size:15px; line-height:1.4; }
+  .bars { display:flex; gap:5px; align-items:flex-end; height:46px; margin: 10px 0 4px; }
+  .bar { flex:1; background:#27344a; border-radius:4px 4px 0 0; min-height:3px; position:relative; }
+  .bar.cur { outline:1px dashed var(--muted); }
+  .bar.lo { background:var(--red); } .bar.mid { background:var(--amber); } .bar.hi { background:var(--green); }
+  .barlabels { display:flex; gap:5px; font-size:10px; color:var(--muted); text-align:center; }
+  .barlabels span { flex:1; }
+  .meta { color:var(--muted); font-size:13px; line-height:1.5; }
+  .btn { background:var(--blue); color:#fff; border:none; border-radius:10px; padding:13px 18px; font-size:15px; font-weight:600; cursor:pointer; }
+  .btn.ghost { background:none; border:1px solid var(--border); color:var(--text); }
+  .btn.small { padding:9px 12px; font-size:13px; }
+  .btn.full { width:100%; }
+  label { display:block; font-size:13px; color:var(--muted); margin: 12px 0 5px; }
+  select, input[type=text], input[type=date], input[type=number], textarea { width:100%; background:var(--panel2); color:var(--text); border:1px solid var(--border); border-radius:10px; padding:12px; font:inherit; font-size:16px; }
+  textarea { min-height: 90px; resize: vertical; }
+  .scale { display:flex; gap:6px; } .scale button { flex:1; padding:12px 0; border-radius:10px; border:1px solid var(--border); background:var(--panel2); color:var(--text); font-size:16px; font-weight:700; cursor:pointer; }
+  .scale button.sel { background:var(--brass); color:#1a1300; border-color:var(--brass); }
+  .rp { display:grid; grid-template-columns: 1fr auto; gap:8px; align-items:center; padding:12px 0; border-top:1px solid var(--border); }
+  .rp:first-of-type { border-top:none; }
+  .rp .att { display:flex; align-items:center; gap:8px; font-size:17px; }
+  .rp .att input { width:24px; height:24px; accent-color: var(--brass); }
+  .rp .scale { grid-column: 1 / -1; }
+  .toast { position:fixed; left:50%; transform:translateX(-50%); bottom:24px; background:var(--text); color:var(--bg); padding:12px 18px; border-radius:10px; z-index:20; max-width:90vw; }
+  .rules li { margin-bottom: 8px; }
+  details summary { cursor:pointer; color:var(--brass); font-size:14px; padding:6px 0; }
+  .hidden { display:none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><div><a href="/">&larr; Home</a><a href="/storms.html#team">Live map</a></div></div>
+  <h1>My team</h1>
+  <div class="sub" id="sub">Loading…</div>
+
+  <nav>
+    <button class="on" data-s="roster">Roster</button>
+    <button data-s="meeting">Log meeting</button>
+    <button data-s="roleplay">Role-play</button>
+  </nav>
+
+  <section id="s-roster" class="on">
+    <div id="attention"></div>
+    <h2>Everyone</h2>
+    <div id="roster"><div class="empty">Loading…</div></div>
+    <details class="card">
+      <summary>How the alerts work, and the weekly targets</summary>
+      <ul class="rules meta">
+        <li><b>Coach this week:</b> last full week under 70% of target.</li>
+        <li><b>Struggling:</b> 2 full weeks in a row under 70%.</li>
+        <li><b>Decision time:</b> 4 full weeks in a row under 50%.</li>
+        <li>New reps get 2 weeks to ramp up before any flag.</li>
+        <li>Numbers come from the taps reps make on their check-in page. A week with no taps can mean they forgot to tap, so ask before you decide.</li>
+        <li>Document your coaching and decide with the owner. Check with the owner or an employment attorney before ending anyone's job.</li>
+      </ul>
+      <label>Weekly appointments target per rep</label>
+      <input type="number" id="tAppts" step="0.1" min="0">
+      <label>Weekly doors target per rep</label>
+      <input type="number" id="tDoors" min="0">
+      <div class="meta" id="tNote" style="margin-top:6px"></div>
+      <button class="btn small" style="margin-top:10px" onclick="saveTargets()">Save targets</button>
+    </details>
+  </section>
+
+  <section id="s-meeting">
+    <div class="card">
+      <b style="font-size:18px">Quick 1-on-1 log</b>
+      <label>Rep</label><select id="mRep"></select>
+      <label>What did you talk about?</label><textarea id="mNote" placeholder="Short note…"></textarea>
+      <label>One skill to work on</label>
+      <select id="mSkill">
+        <option value="">None</option><option>Opener / first 10 seconds</option><option>Handling objections</option><option>Hustle / pace</option>
+        <option>Setting the appointment</option><option>Hail inspection pitch</option><option>Attitude / confidence</option><option>Staying on assigned turf</option>
+      </select>
+      <label>Follow up on</label><input type="date" id="mFollow">
+      <label>How confident do they seem? (1 low, 5 high)</label>
+      <div class="scale" id="mConf"></div>
+      <button class="btn full" style="margin-top:16px" onclick="saveMeeting()">Save meeting</button>
+    </div>
+    <h2>Last meetings</h2>
+    <div id="mHist" class="empty">Pick a rep to see their history.</div>
+  </section>
+
+  <section id="s-roleplay">
+    <div class="card">
+      <b style="font-size:18px">Weekly role-play</b>
+      <label>Date</label><input type="date" id="rDate">
+      <label>Skill of the week</label>
+      <select id="rSkill">
+        <option>Opener / first 10 seconds</option><option>Handling objections</option><option>Setting the appointment</option>
+        <option>Hail inspection pitch</option><option>Insurance questions</option><option>Closing</option>
+      </select>
+      <h2>Who showed up, and how did they do? (1 to 5)</h2>
+      <div id="rList"></div>
+      <button class="btn full" style="margin-top:14px" onclick="saveRoleplay()">Save role-play</button>
+    </div>
+    <h2>Recent sessions</h2>
+    <div id="rHist" class="empty">None yet.</div>
+  </section>
+</div>
+<div class="toast hidden" id="toast"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+let DATA = null, mConf = 0, rScores = {};
+const todayStr = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+function toast(m) { const t = $('toast'); t.textContent = m; t.classList.remove('hidden'); setTimeout(() => t.classList.add('hidden'), 3500); }
+const fmt = s => s ? new Date(String(s).slice(0,10) + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+
+document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('nav button').forEach(x => x.classList.toggle('on', x === b));
+  document.querySelectorAll('section').forEach(s => s.classList.toggle('on', s.id === 's-' + b.dataset.s));
+});
+
+function scale(el, onPick, sel) {
+  el.innerHTML = [1,2,3,4,5].map(n => `<button type="button" data-n="${n}" class="${sel === n ? 'sel' : ''}">${n}</button>`).join('');
+  el.querySelectorAll('button').forEach(b => b.onclick = () => { onPick(+b.dataset.n); scale(el, onPick, +b.dataset.n); });
+}
+
+function barsHtml(weeks) {
+  const max = Math.max(1.2, ...weeks.map(w => w.pct));
+  const bars = weeks.map(w => {
+    const h = Math.max(6, Math.round((w.pct / max) * 100));
+    const cls = w.pct >= 1 ? 'hi' : w.pct >= 0.7 ? 'mid' : 'lo';
+    return `<div class="bar ${cls} ${w.current ? 'cur' : ''}" style="height:${h}%" title="${w.appts} appts, ${w.doors} doors"></div>`;
+  }).join('');
+  const labels = weeks.map(w => `<span>${w.current ? 'now' : fmt(w.wk)}</span>`).join('');
+  return `<div class="bars">${bars}</div><div class="barlabels">${labels}</div>`;
+}
+
+function repCard(r) {
+  const cur = r.weeks[r.weeks.length - 1];
+  const rp = r.roleplay;
+  const trend = rp && rp.trend ? { up: ' ↑', down: ' ↓', flat: ' →' }[rp.trend] : '';
+  const lines = [];
+  lines.push(`This week so far: <b>${cur.appts}</b> appts, <b>${cur.doors}</b> doors`);
+  lines.push(r.lastMeeting ? `Last 1-on-1: ${fmt(r.lastMeeting.met_on)}${r.lastMeeting.skill ? ' · ' + esc(r.lastMeeting.skill) : ''}` : 'No 1-on-1 logged yet');
+  if (r.followupDue) lines.push(`Follow-up: ${fmt(r.followupDue)}`);
+  if (rp && rp.avgScore != null) lines.push(`Role-play avg: ${rp.avgScore.toFixed(1)}/5${trend} · came to ${rp.attended} of ${rp.total}`);
+  return `<div class="card rep ${r.level}">
+    <div class="row"><span class="name">${esc(r.name)}</span><span class="pill ${r.level}">${esc(r.label)}</span></div>
+    <div class="action">${esc(r.action)}</div>
+    ${barsHtml(r.weeks)}
+    <div class="meta">${lines.join('<br>')}</div>
+    <div style="margin-top:10px"><button class="btn small" onclick="startMeeting(${r.id})">Log meeting</button></div>
+  </div>`;
+}
+
+function render() {
+  const d = DATA, reps = d.reps;
+  const flagged = reps.filter(r => ['decision','warning','coach'].includes(r.level));
+  $('sub').textContent = reps.length
+    ? `${reps.length} canvassers · target ${d.targets.apptsPerWeek} appts a week each`
+    : 'No canvassers yet';
+  $('attention').innerHTML = flagged.length
+    ? `<h2>Needs your attention (${flagged.length})</h2>` + flagged.map(repCard).join('')
+    : (reps.length ? '<div class="card"><b>Nobody needs attention right now.</b></div>' : '');
+  const rest = reps.filter(r => !flagged.includes(r));
+  $('roster').innerHTML = reps.length
+    ? (rest.map(repCard).join('') || '<div class="empty">Everyone is in the list above.</div>')
+    : '<div class="empty">No canvassers on the roster yet. Hiring starts January 1. Once your reps are added, their numbers, meetings and role-play scores show up here.</div>';
+  const opts = reps.map(r => `<option value="${r.id}">${esc(r.name)}</option>`).join('');
+  const keep = $('mRep').value;
+  $('mRep').innerHTML = opts || '<option value="">No reps yet</option>';
+  if (keep) $('mRep').value = keep;
+  $('rList').innerHTML = reps.length ? reps.map(r => `
+    <div class="rp"><label class="att"><input type="checkbox" data-rp="${r.id}" ${rScores[r.id]?.attended === false ? '' : 'checked'}> ${esc(r.name)}</label><span></span>
+      <div class="scale" id="rs-${r.id}"></div></div>`).join('') : '<div class="empty">No reps yet.</div>';
+  reps.forEach(r => scale($('rs-' + r.id), n => { rScores[r.id] = { ...(rScores[r.id] || {}), score: n }; }, rScores[r.id]?.score));
+  $('rHist').innerHTML = d.sessions.length ? d.sessions.map(s => `<div class="card"><b>${fmt(s.held_on)}</b> · ${esc(s.skill || 'No skill set')}<div class="meta">${s.attended} of ${s.n} attended</div></div>`).join('') : '<div class="empty">None yet.</div>';
+  $('tAppts').value = d.targets.apptsPerWeek; $('tDoors').value = d.targets.doorsPerWeek;
+  $('tNote').textContent = d.targets.custom ? 'Using your saved targets.' : `Starting numbers come from your Manager Desk Setup (${d.targets.derivedAppts} appts, ${d.targets.derivedDoors} doors a week each). Replace them with real targets after your first month.`;
+}
+
+async function load() {
+  try {
+    const r = await fetch('/api/coach');
+    DATA = await r.json();
+    if (!r.ok) throw new Error(DATA.error || 'load failed');
+    render();
+  } catch (e) { $('sub').textContent = 'Could not load: ' + e.message; }
+}
+
+async function post(body) {
+  const r = await fetch('/api/coach', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  const d = await r.json();
+  if (!r.ok) { toast(d.error || 'Did not save'); return false; }
+  return true;
+}
+
+function startMeeting(id) {
+  document.querySelector('nav button[data-s=meeting]').click();
+  $('mRep').value = id; loadHist(); window.scrollTo(0, 0);
+}
+async function loadHist() {
+  const id = $('mRep').value; if (!id) return;
+  const r = await fetch('/api/coach?repId=' + id); const d = await r.json();
+  $('mHist').innerHTML = d.meetings.length ? d.meetings.map(m => `<div class="card"><b>${fmt(m.met_on)}</b>${m.skill ? ' · ' + esc(m.skill) : ''}${m.confidence ? ' · confidence ' + m.confidence + '/5' : ''}<div class="meta">${esc(m.note || '')}</div>${m.followup_on ? `<div class="meta">Follow up ${fmt(m.followup_on)}</div>` : ''}</div>`).join('') : '<div class="empty">No meetings logged for this rep yet.</div>';
+}
+$('mRep').onchange = loadHist;
+async function saveMeeting() {
+  const repId = $('mRep').value;
+  if (!repId) { toast('Pick a rep first.'); return; }
+  if (!$('mNote').value.trim() && !$('mSkill').value) { toast('Add a note or pick a skill.'); return; }
+  if (await post({ action: 'meeting', repId, note: $('mNote').value, skill: $('mSkill').value, followupOn: $('mFollow').value, confidence: mConf })) {
+    toast('Meeting saved.'); $('mNote').value = ''; $('mSkill').value = ''; $('mFollow').value = ''; mConf = 0; scale($('mConf'), n => mConf = n, 0);
+    await loadHist(); load();
+  }
+}
+async function saveRoleplay() {
+  const reps = DATA.reps; if (!reps.length) return;
+  const scores = reps.map(r => ({ repId: r.id, attended: document.querySelector(`[data-rp="${r.id}"]`).checked, score: rScores[r.id]?.score || null }));
+  if (await post({ action: 'roleplay', heldOn: $('rDate').value, skill: $('rSkill').value, scores })) { toast('Role-play saved.'); rScores = {}; load(); }
+}
+async function saveTargets() {
+  if (await post({ action: 'settings', apptsPerWeek: $('tAppts').value, doorsPerWeek: $('tDoors').value })) { toast('Targets saved.'); load(); }
+}
+
+$('rDate').value = todayStr();
+scale($('mConf'), n => mConf = n, 0);
+load();
+</script>
+</body>
+</html>

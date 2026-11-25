@@ -47,7 +47,7 @@
       <div><div class="icon">📊</div><div class="label">Check numbers</div></div>
       <div class="head" id="hNums">Loading…</div>
     </a>
-    <a class="tile team" href="/storms.html#team">
+    <a class="tile team" href="/team.html">
       <div><div class="icon">👥</div><div class="label">My team</div></div>
       <div class="head" id="hTeam">Loading…</div>
     </a>
@@ -79,7 +79,7 @@ const DAILY_IDS = ['d1','d2','d3','d4','d5','d6'];
 async function load() {
   const [storms, reps, rev, pulse, checks, cfg] = await Promise.all([
     j('/api/storms').catch(() => null),
-    j('/api/reps').catch(() => null),
+    j('/api/coach').catch(() => null),
     j('/api/revenue').catch(() => null),
     j('/api/desk?path=pulse/' + key).catch(() => null),
     j('/api/desk?path=gk/checks').catch(() => null),
@@ -109,13 +109,14 @@ async function load() {
   else strip.push({ cls:'todo', href:'/desk.html#today', t:'Log today\'s team pulse', s:'Doors, appointments set and cash collected.' });
 
   // Team
-  if (reps) {
-    const onSite = reps.filter(r => r.status === 'on_site').length;
-    const disp = reps.filter(r => r.status === 'dispatched').length;
-    document.getElementById('hTeam').innerHTML = reps.length
-      ? `<b>${reps.length}</b> reps · ${onSite} on site · ${disp} dispatched`
+  if (reps && reps.reps) {
+    const rs = reps.reps;
+    const flagged = rs.filter(r => ['decision','warning','coach'].includes(r.level));
+    const decision = rs.filter(r => r.level === 'decision').length;
+    document.getElementById('hTeam').innerHTML = rs.length
+      ? `<b>${rs.length}</b> reps · ${flagged.length ? `<b>${flagged.length} need attention</b>` : 'all on track'}`
       : 'No reps yet. Hiring starts Jan 1';
-    if (reps.length) strip.push({ cls: onSite||disp ? 'go':'todo', href:'/storms.html#team', t:`${onSite} on site, ${disp} dispatched`, s:`${reps.length} reps on the roster` });
+    if (flagged.length) strip.push({ cls: decision ? 'go' : 'todo', href:'/team.html', t:`${flagged.length} rep${flagged.length === 1 ? '' : 's'} need${flagged.length === 1 ? 's' : ''} attention`, s: flagged.slice(0,3).map(r => r.name + ': ' + r.label.toLowerCase()).join(' · ') });
   } else document.getElementById('hTeam').textContent = 'Tap to see your reps';
 
   // Desk
