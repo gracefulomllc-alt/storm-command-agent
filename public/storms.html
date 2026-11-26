@@ -163,7 +163,7 @@
   </div>
   <div class="goal-bars">
     <div class="goal-bar">
-      <div class="label"><span>Total</span><span id="goalTotalLabel">$0 / $5.0M</span></div>
+      <div class="label"><span>Total</span><span id="goalTotalLabel">$0 / $3.0M (stretch $5M)</span></div>
       <div class="track"><div class="fill" id="goalTotalFill" style="width:0%"></div></div>
     </div>
     <div class="goal-bar">
@@ -371,12 +371,12 @@ async function loadRevenue() {
     const res = await fetch('/api/revenue');
     const data = await res.json();
     const snap = data.snapshot || { total_sold_cents: 0, canvasser_sold_cents: 0 };
-    const goals = data.goals || { totalCents: 500000000, canvasserCents: 100000000 };
+    const goals = data.goals || { totalCents: 300000000, canvasserCents: 100000000 };
     const totalPct = Math.min(100, (snap.total_sold_cents / goals.totalCents) * 100);
     const canvPct = Math.min(100, (snap.canvasser_sold_cents / goals.canvasserCents) * 100);
     document.getElementById('goalTotalFill').style.width = `${totalPct}%`;
     document.getElementById('goalCanvasserFill').style.width = `${canvPct}%`;
-    document.getElementById('goalTotalLabel').textContent = `${fmtMoney(snap.total_sold_cents)} / ${fmtMoney(goals.totalCents)}`;
+    document.getElementById('goalTotalLabel').textContent = `${fmtMoney(snap.total_sold_cents)} / ${fmtMoney(goals.totalCents)} (stretch $5M)`;
     document.getElementById('goalCanvasserLabel').textContent = `${fmtMoney(snap.canvasser_sold_cents)} / ${fmtMoney(goals.canvasserCents)}`;
   } catch {
     // Revenue is best-effort (needs CRM keys configured) — fail quietly, keep bars at 0.
@@ -497,7 +497,7 @@ async function scoreHistory() {
         <div><span class="verdict ${d.verdict}">${d.verdictLabel}</span><div class="pct"><b>~${d.approvalPct}%</b> estimated approval likelihood</div></div></div>
       <div class="meta" style="margin-top:8px">${verdictText} · ${Math.round(d.radiusMi)} mi circle · ${d.from} to ${d.to}</div>
       <ul>${d.reasons.map(r => `<li>${r}</li>`).join('')}</ul>
-      ${d.daysFailed ? `<div class="meta" style="margin-top:8px;color:#f59e0b">${d.daysFailed} of ${d.daysChecked} days couldn't be loaded, so this may undercount.</div>` : ''}
+      ${d.sources ? `<div class="meta" style="margin-top:8px;${d.daysFailed ? 'color:#f59e0b' : ''}">Sources: ${d.sources.map(x => (x.ok ? '✓ ' : '✗ ') + x.name).join(' · ')}${d.daysFailed ? '. A source failed, so this may undercount.' : ''}</div>` : ''}
       <div class="meta" style="margin-top:8px">Estimate only, based on storm reports. It is not a guarantee of approval.</div>`;
     d.reports.forEach(r => {
       const sz = r.sizeInches;

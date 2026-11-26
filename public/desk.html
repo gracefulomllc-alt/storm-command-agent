@@ -277,9 +277,9 @@ details.group>summary::-webkit-details-marker{display:none}
   var toastTimer;
   function toast(msg){ var t=$('toast'); t.textContent=msg; t.hidden=false; clearTimeout(toastTimer); toastTimer=setTimeout(function(){ t.hidden=true; }, 4000); }
 
-  var DEFAULTS = {goal:5000000, canvassGoal:1000000, avgJob:15000, sit:60, close:40, doors:35, reps:10, weeks:40, lag:6, bonus:20, start:'2027-01-04', roster:[], season:[4,4,6,8,13,15,15,12,8,6,5,4]};
+  var DEFAULTS = {goal:3000000, stretchGoal:5000000, canvassGoal:1000000, avgJob:15000, sit:60, close:40, doors:35, reps:10, weeks:40, lag:6, bonus:20, start:'2027-01-04', roster:[], season:[4,4,6,8,13,15,15,12,8,6,5,4]};
   var FIELDS = [
-    ['goal','Company goal ($/yr)'],['canvassGoal','Canvasser goal ($/yr)'],['avgJob','Average job ($)'],
+    ['goal','Must-hit goal ($/yr)'],['stretchGoal','Stretch goal ($/yr)'],['canvassGoal','Canvasser goal ($/yr)'],['avgJob','Average job ($)'],
     ['sit','Set to sat (%)'],['close','Sat to sold (%)'],['doors','Doors per appointment set'],
     ['reps','Active canvassers'],['weeks','Selling weeks per year'],['lag','Sold to paid (weeks)'],['bonus','Bonus per appt set ($)']
   ];
@@ -440,7 +440,7 @@ details.group>summary::-webkit-details-marker{display:none}
       var r = readiness();
       html = statCard('Season opens', p.daysToStart+' days', esc(parseYmd(c.start).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})))
         + statCard('Pre-season readiness', r.done+' of '+r.total, 'setup items done', r.done===r.total?'good':'', trackHtml(r.done,0,r.total))
-        + statCard('Target at full pace', f1(calc().jobsWeek)+' jobs/wk', money(goal)+' a year');
+        + statCard('Target at full pace', f1(calc().jobsWeek)+' jobs/wk', money(goal)+' a year, stretch '+money(Number(c.stretchGoal)||0));
     } else {
       var sGap = p.sold-p.expSold, pGap = p.paid-p.expPaid;
       html = statCard('Sold to date, net', money(p.sold), (sGap>=0?'ahead of':'behind')+' pace by '+money(Math.abs(sGap)), sGap>=0?'good':'bad', trackHtml(p.sold,p.expSold,goal))

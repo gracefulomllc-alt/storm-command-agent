@@ -29,6 +29,19 @@
   .strip .dot { flex:none; width: 10px; height: 10px; border-radius: 50%; margin-top: 6px; background: var(--muted); }
   .dot.go { background: var(--red); } .dot.ok { background: var(--green); } .dot.todo { background: var(--brass); }
   .strip small { display:block; color: var(--muted); font-size: 14px; margin-top: 2px; }
+  .card { background: var(--panel); border:1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 18px; }
+  .card h3 { margin: 0 0 8px; font-size: 19px; }
+  .spot { padding: 12px 0; border-top: 1px solid var(--border); }
+  .spot:first-of-type { border-top: none; }
+  .spot .addr { font-size: 17px; font-weight: 600; }
+  .spot .why { color: var(--muted); font-size: 14px; margin-top: 3px; }
+  .badge { display:inline-block; min-width: 44px; text-align:center; padding: 3px 8px; border-radius: 8px; font-weight: 800; margin-right: 8px; }
+  .badge.go { background: var(--green); color:#042a0f; } .badge.maybe { background: var(--brass); color:#1a1300; }
+  .assign { font-size: 14px; color: var(--muted); padding: 4px 0; }
+  .qbtn { display:block; width:100%; text-align:left; background: #0f1829; color: var(--text); border:1px solid var(--border); border-radius: 10px; padding: 14px; font-size: 16px; margin-top: 8px; cursor:pointer; }
+  .qbtn:active { border-color: var(--brass); }
+  .go-btn { width:100%; margin-top: 12px; padding: 15px; font-size: 16px; font-weight: 700; border:none; border-radius: 10px; background: var(--blue); color:#fff; cursor:pointer; }
+  .src { font-size: 12px; color: var(--muted); margin-top: 10px; }
   .foot { text-align:center; margin-top: 24px; font-size: 13px; }
   .foot a { color: var(--muted); margin: 0 10px; }
 </style>
@@ -58,6 +71,9 @@
   </div>
 
   <a class="tile" href="/storms.html#history" style="min-height:0;flex-direction:row;align-items:center;gap:14px;margin-bottom:26px;padding:16px 20px"><span class="icon" style="font-size:28px">🕘</span><span><b style="font-size:19px">Check a past storm</b><div class="head" style="margin-top:2px">Is an area worth sending the team? Pick dates and circle it.</div></span></a>
+
+  <div class="card" id="qCard" style="display:none"></div>
+  <div class="card" id="planCard"><h3>Best spots to send the team</h3><div class="why" style="color:var(--muted)">Checking storm sources…</div></div>
 
   <h2>Today</h2>
   <div class="strip" id="strip"><a href="#"><span class="dot"></span><span>Loading…</span></a></div>
@@ -102,7 +118,7 @@ async function load() {
 
   // Numbers
   const snap = rev && rev.snapshot;
-  const goalCents = (rev && rev.goals && rev.goals.totalCents) || 500000000;
+  const goalCents = (rev && rev.goals && rev.goals.totalCents) || 300000000;
   const sold = snap ? snap.total_sold_cents : 0;
   document.getElementById('hNums').innerHTML = `<b>${money(sold)}</b> of ${money(goalCents)} goal`;
   if (pulse && pulse.data) strip.push({ cls:'ok', href:'/desk.html#today', t:'Daily pulse logged', s:`${pulse.data.doors||0} doors · ${pulse.data.appts||0} appointments` });
@@ -130,8 +146,57 @@ async function load() {
   document.getElementById('strip').innerHTML = strip.map(x =>
     `<a href="${x.href}"><span class="dot ${x.cls}"></span><span>${x.t}<small>${x.s}</small></span></a>`).join('');
 }
+
+let PLAN = null;
+async function loadPlan() {
+  const card = document.getElementById('planCard');
+  try {
+    PLAN = await j('/api/plan?days=14');
+  } catch (e) { card.innerHTML = '<h3>Best spots to send the team</h3><div class="why" style="color:var(--muted)">Could not check storm sources right now.</div>'; return; }
+  const spots = PLAN.spots || [];
+  const src = (PLAN.statuses || []).map(s => `${s.ok ? '✓' : '✗'} ${esc(s.name)}`).join(' · ');
+  let html = '<h3>Best spots to send the team</h3>';
+  if (!spots.length) html += '<div class="why" style="color:var(--muted)">Nothing worth chasing in the last 14 days. Skip the drive and work referrals or old leads.</div>';
+  html += spots.slice(0, 3).map(s => `<div class="spot"><div class="addr"><span class="badge ${s.verdict}">${s.score}/10</span>${esc(s.address)}</div><div class="why">${s.maxHail}" hail · ${s.count} report${s.count === 1 ? '' : 's'} · checked by ${s.venues.map(esc).join(' + ')}</div></div>`).join('');
+  if (PLAN.assignments && PLAN.assignments.length) {
+    html += '<div style="margin-top:10px"><b>Suggested plan</b></div>' + PLAN.assignments.map(a => `<div class="assign">${esc(a.name)} → ${esc(a.address)}</div>`).join('');
+    html += '<button class="go-btn" onclick="approvePlan()">Approve and send reps</button>';
+  } else if (spots.length) {
+    html += '<div class="src">No reps on the roster yet, so nobody to assign. Add reps once hiring starts.</div>';
+  }
+  html += `<div class="src">Sources: ${src}</div>`;
+  card.innerHTML = html;
+}
+async function approvePlan() {
+  if (!PLAN || !PLAN.assignments) return;
+  if (!confirm(`Send ${PLAN.assignments.length} rep(s) to their spots?`)) return;
+  const r = await fetch('/api/plan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'approve', assignments: PLAN.assignments.map(a => ({ repId: a.repId, address: a.address })) }) });
+  const d = await r.json();
+  alert(r.ok ? 'Reps sent. They will see their address on the check-in page.' : (d.error || 'Did not send'));
+}
+async function loadBrief() {
+  const card = document.getElementById('qCard');
+  try {
+    const b = await j('/api/brief');
+    const p = b.pace;
+    let line = '';
+    if (p) line = p.pre ? `Season opens in ${p.daysToStart} days. Must-hit $${(p.goal/1e6).toFixed(1)}M, stretch $${(p.stretch/1e6).toFixed(1)}M.`
+      : `${p.onPace ? 'Ahead of' : 'Behind'} the $${(p.goal/1e6).toFixed(1)}M pace by $${Math.round(Math.abs(p.gap)).toLocaleString()}.`;
+    if (!b.question) { card.style.display = 'none'; return; }
+    card.style.display = 'block';
+    card.innerHTML = `<h3>${esc(b.question.text)}</h3><div class="why" style="color:var(--muted);font-size:14px">${esc(line)}</div>` +
+      b.question.options.map(o => `<button class="qbtn" data-k="${b.question.key}" data-o="${esc(o)}">${esc(o)}</button>`).join('');
+    card.querySelectorAll('.qbtn').forEach(btn => btn.onclick = async () => {
+      await fetch('/api/brief', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: btn.dataset.k, answer: btn.dataset.o }) });
+      card.innerHTML = '<h3>Thanks, got it.</h3>';
+      setTimeout(() => card.style.display = 'none', 1800);
+    });
+  } catch (e) { card.style.display = 'none'; }
+}
+loadPlan(); loadBrief();
 load();
 setInterval(load, 60000);
+setInterval(loadPlan, 15 * 60000);
 </script>
 </body>
 </html>

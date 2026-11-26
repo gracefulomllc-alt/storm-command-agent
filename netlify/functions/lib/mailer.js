@@ -73,3 +73,12 @@ export async function sendDispatchAlert(newStorms, dashboardUrl) {
   });
   return { sent: true };
 }
+
+// Generic email used by the morning brief.
+export async function sendEmail(subject, html) {
+  const transport = buildTransport();
+  if (!transport) return { sent: false, reason: "GMAIL_USER / GMAIL_APP_PASSWORD not configured" };
+  const to = Netlify.env.get("ALERT_TO_EMAIL") || Netlify.env.get("GMAIL_USER");
+  await transport.sendMail({ from: `Storm Command <${Netlify.env.get("GMAIL_USER")}>`, to, subject, html });
+  return { sent: true };
+}

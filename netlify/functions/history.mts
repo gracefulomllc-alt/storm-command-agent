@@ -3,7 +3,8 @@
 import type { Config } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
 import { haversineMiles } from "./lib/geo.js";
-import { daysBetween, parseDay, scoreArea, spcUrlFor, ymd } from "./lib/history.js";
+import { daysBetween, scoreArea, ymd } from "./lib/history.js";
+import { fetchLSR, fetchSPC, mergeReports } from "./lib/sources.js";
 
 const MAX_SPAN_DAYS = 92;
 const MAX_LOOKBACK_DAYS = 740; // ~2 years
@@ -63,16 +64,9 @@ export default async (req: Request) => {
   }
 
   const store = getStore("storm-history");
-  const all: any[] = [];
-  let failed = 0;
-  // Fetch in batches of 8 so we don't hammer SPC.
-  for (let i = 0; i < days.length; i += 8) {
-    const batch = await Promise.all(days.slice(i, i + 8).map((d) => loadDay(store, d, todayStr)));
-    for (const b of batch) {
-      if (!b.ok) failed++;
-      all.push(...b.reports);
-    }
-  }
+  const [spc, lsr] = await Promise.all([fetchSPC(from, to, store), fetchLSR(from, to)]);
+  const all: any[] = mergeReports([spc.reports, lsr.reports]);
+  const failed = [spc.status, lsr.status].filter((x) => !x.ok).length;
 
   const inside = all
     .map((r) => ({ ...r, distMi: haversineMiles(lat, lon, r.lat, r.lon) }))
@@ -80,6 +74,14 @@ export default async (req: Request) => {
     .sort((a, b) => b.sizeInches - a.sizeInches);
 
   const result = scoreArea(inside);
+  const venues = new Set(inside.flatMap((r: any) => r.sources || []));
+  if (venues.size >= 2 && result.maxHail >= 1) {
+    result.score = Math.min(10, result.score + 1);
+    result.verdict = result.score >= 7 ? "go" : result.score >= 5 ? "maybe" : "skip";
+    result.verdictLabel = { go: "Go", maybe: "Maybe", skip: "Skip" }[result.verdict as "go" | "maybe" | "skip"];
+    result.approvalPct = ({ 1: 3, 2: 8, 3: 15, 4: 25, 5: 38, 6: 52, 7: 65, 8: 76, 9: 85, 10: 90 } as any)[result.score];
+    result.reasons.splice(1, 0, `Confirmed by ${venues.size} independent sources.`);
+  }
   return Response.json({
     from,
     to,
@@ -87,6 +89,7 @@ export default async (req: Request) => {
     radiusMi: radius,
     daysChecked: days.length,
     daysFailed: failed,
+    sources: [spc.status, lsr.status],
     ...result,
     reports: inside.slice(0, 300),
   });

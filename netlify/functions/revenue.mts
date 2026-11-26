@@ -9,7 +9,8 @@ import { fetchSalesRabbitSold, fetchAccuLynxSold } from "./lib/crm.js";
 const db = getDatabase();
 
 // Good Knight's stated goals (see storm-command-agent README / Terel's business targets).
-const GOAL_TOTAL_CENTS = 500_000_000; // $5,000,000
+const GOAL_TOTAL_CENTS = 300_000_000; // $3,000,000 must-hit
+const GOAL_STRETCH_CENTS = 500_000_000; // $5,000,000 stretch
 const GOAL_CANVASSER_CENTS = 100_000_000; // $1,000,000
 
 async function latestSnapshot() {
@@ -46,7 +47,7 @@ export default async (req: Request, context: Context) => {
       const snap = await latestSnapshot();
       return Response.json({
         snapshot: snap,
-        goals: { totalCents: GOAL_TOTAL_CENTS, canvasserCents: GOAL_CANVASSER_CENTS },
+        goals: { totalCents: GOAL_TOTAL_CENTS, canvasserCents: GOAL_CANVASSER_CENTS, stretchCents: GOAL_STRETCH_CENTS },
       });
     }
 
@@ -55,7 +56,7 @@ export default async (req: Request, context: Context) => {
       if (!result.ok) return Response.json(result, { status: 424 });
       return Response.json({
         snapshot: result.snapshot,
-        goals: { totalCents: GOAL_TOTAL_CENTS, canvasserCents: GOAL_CANVASSER_CENTS },
+        goals: { totalCents: GOAL_TOTAL_CENTS, canvasserCents: GOAL_CANVASSER_CENTS, stretchCents: GOAL_STRETCH_CENTS },
       });
     }
 
@@ -70,7 +71,7 @@ export default async (req: Request, context: Context) => {
       `;
       return Response.json({
         snapshot,
-        goals: { totalCents: GOAL_TOTAL_CENTS, canvasserCents: GOAL_CANVASSER_CENTS },
+        goals: { totalCents: GOAL_TOTAL_CENTS, canvasserCents: GOAL_CANVASSER_CENTS, stretchCents: GOAL_STRETCH_CENTS },
       });
     }
 
