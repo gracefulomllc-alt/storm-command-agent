@@ -67,6 +67,14 @@
   </nav>
 
   <section id="s-roster" class="on">
+    <details class="card" id="addBox">
+      <summary style="font-size:17px;font-weight:700">+ Add a canvasser</summary>
+      <label>Name</label><input type="text" id="aName" placeholder="First and last name" autocomplete="off">
+      <label>Phone (optional)</label><input type="text" id="aPhone" inputmode="tel" placeholder="970-555-0123">
+      <label>Their 4-digit PIN (they use it on the check-in page)</label><input type="text" id="aPin" inputmode="numeric" maxlength="8">
+      <button class="btn full" style="margin-top:14px" onclick="addRep()">Add canvasser</button>
+      <div class="meta" style="margin-top:8px">Give them the PIN and this link: <b id="repLink"></b></div>
+    </details>
     <div id="attention"></div>
     <h2>Everyone</h2>
     <div id="roster"><div class="empty">Loading…</div></div>
@@ -170,7 +178,7 @@ function repCard(r) {
     <div class="action">${esc(r.action)}</div>
     ${barsHtml(r.weeks)}
     <div class="meta">${lines.join('<br>')}</div>
-    <div style="margin-top:10px"><button class="btn small" onclick="startMeeting(${r.id})">Log meeting</button></div>
+    <div style="margin-top:10px"><button class="btn small" onclick="startMeeting(${r.id})">Log meeting</button> <button class="btn small ghost" onclick="removeRep(${r.id},'${esc(r.name).replace(/'/g,"")}')">Remove</button></div>
   </div>`;
 }
 
@@ -199,6 +207,25 @@ function render() {
   $('tAppts').value = d.targets.apptsPerWeek; $('tDoors').value = d.targets.doorsPerWeek;
   $('tNote').textContent = d.targets.custom ? 'Using your saved targets.' : `Starting numbers come from your Manager Desk Setup (${d.targets.derivedAppts} appts, ${d.targets.derivedDoors} doors a week each). Replace them with real targets after your first month.`;
 }
+
+function newPin() { $('aPin').value = String(Math.floor(1000 + Math.random() * 9000)); }
+async function addRep() {
+  const name = $('aName').value.trim(), pin = $('aPin').value.trim();
+  if (!name || !pin) { toast('Enter a name and PIN'); return; }
+  const r = await fetch('/api/reps', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, phone: $('aPhone').value.trim() || null, pin }) });
+  const d = await r.json();
+  if (!r.ok) { toast(d.error || 'Did not add'); return; }
+  toast(`${name} added. PIN ${pin}`);
+  $('aName').value = ''; $('aPhone').value = ''; newPin();
+  load();
+}
+async function removeRep(id, name) {
+  if (!confirm(`Remove ${name} from the roster? Their history is kept.`)) return;
+  const r = await fetch('/api/reps/' + id, { method: 'DELETE' });
+  if (r.ok) { toast('Removed'); load(); } else toast('Did not remove');
+}
+$('repLink').textContent = location.origin + '/rep.html';
+newPin();
 
 async function load() {
   try {
